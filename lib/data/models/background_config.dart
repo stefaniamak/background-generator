@@ -26,7 +26,7 @@ class BackgroundConfig {
   static BackgroundConfig initial() {
     return const BackgroundConfig(
       darkColor: Color(0xFF000000),     // Black background
-      lightColor: Color(0xFF404040),    // Dark grey pattern
+      lightColor: Color(0xFF282828),    // Very dark grey pattern
       randomSeed: 42,                   // Fixed seed for consistent pattern
     );
   }
