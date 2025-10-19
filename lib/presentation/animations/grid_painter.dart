@@ -33,13 +33,13 @@ class GridPainter extends CustomPainter {
     // Generate random center points in clustered groups
     final centerPoints = <_CircleInfo>[];
     
-    // Create fewer groups evenly distributed
-    final numGroups = 8 + random.nextInt(5); // 8-12 groups
-    
-    // Calculate grid layout for very vertical distribution
-    // Very few columns (very narrow) and many rows (very tall)
-    final cols = max(1, (sqrt(numGroups) * 0.3).ceil()); // 70% fewer columns - mainly vertical
-    final rows = (numGroups / cols).ceil();
+        // Create fewer groups with varying sizes for more organic distribution
+        final numGroups = 6 + random.nextInt(4); // 6-9 groups (fewer, but more varied)
+        
+        // Calculate grid layout for very vertical distribution
+        // Very few columns (very narrow) and many rows (very tall)
+        final cols = max(1, (sqrt(numGroups) * 0.25).ceil()); // 75% fewer columns - even more vertical
+        final rows = (numGroups / cols).ceil();
     
     // Calculate cell size for grid distribution
     final cellWidth = gridWidth / cols;
@@ -57,12 +57,12 @@ class GridPainter extends CustomPainter {
       final groupStartX = (col * cellWidth + random.nextDouble() * cellWidth).round().clamp(0, gridWidth - 1);
       final groupStartY = (row * cellHeight + random.nextDouble() * cellHeight).round().clamp(0, gridHeight - 1);
       
-      // Random number of particles in this group (varying sizes)
-      final particlesInGroup = 6 + random.nextInt(12); // 6-18 particles per group
+          // Random number of particles in this group (much more variation)
+          final particlesInGroup = 4 + random.nextInt(20); // 4-24 particles per group (more varied sizes)
       
-      // Calculate distance range: 3-15% of screen diagonal (increased for more vertical spread)
-      final minDistance = screenDiagonal * 0.03; // 3% of diagonal
-      final maxDistance = screenDiagonal * 0.15; // 15% of diagonal
+      // Calculate distance range: 5-20% of screen diagonal (even more vertical spread)
+      final minDistance = screenDiagonal * 0.05; // 5% of diagonal
+      final maxDistance = screenDiagonal * 0.20; // 20% of diagonal (increased for longer streaks)
       
       // First particle at the group starting position
       final firstRadius = 4 + random.nextInt(5); // Random radius 4-9 pixels
@@ -82,8 +82,8 @@ class GridPainter extends CustomPainter {
         // Normalize distance to 0-1 range
         final normalizedDistance = (distance - minDistance) / (maxDistance - minDistance);
         
-        // Horizontal spread: starts at 0.08 (8% spread) and reduces to 0 as distance increases
-        final horizontalSpread = 0.08 * (1.0 - normalizedDistance); // 0.08 to 0.0
+            // Horizontal spread: starts at 0.06 (6% spread) and reduces to 0 as distance increases (even more vertical)
+            final horizontalSpread = 0.06 * (1.0 - normalizedDistance); // 0.06 to 0.0 (reduced for more vertical bias)
         
         // Random angle, but mainly vertical
         // For far particles (high normalizedDistance), force almost perfectly vertical
@@ -118,10 +118,13 @@ class GridPainter extends CustomPainter {
     _renderGridToCanvas(canvas, gridFill, size, gridWidth, gridHeight);
   }
 
-  void _fillCircleInGrid(List<List<double>> gridFill, _CircleInfo circle, int gridWidth, int gridHeight, Random random) {
-    final centerX = circle.centerX;
-    final centerY = circle.centerY;
-    final radius = circle.radius;
+      void _fillCircleInGrid(List<List<double>> gridFill, _CircleInfo circle, int gridWidth, int gridHeight, Random random) {
+        final centerX = circle.centerX;
+        final centerY = circle.centerY;
+        final radius = circle.radius;
+        
+        // Create oval shape by varying radius based on angle
+        final ovalFactor = 0.7; // Make particles 70% as wide as they are tall (elongated vertically)
     
     // Fill the main white circle (100% fill)
     final expansionRadius = (radius * 2.0).round(); // 100% expansion
@@ -133,25 +136,31 @@ class GridPainter extends CustomPainter {
            gy <= (centerY + expansionRadius).clamp(0, gridHeight - 1); 
            gy++) {
         
-        final dx = gx - centerX;
-        final dy = gy - centerY;
-        final distanceSquared = dx * dx + dy * dy;
-        final distance = sqrt(distanceSquared);
-        
-        double fillPercentage = 0.0;
-        
-        if (distance <= radius) {
-          // Inside the white circle - 100% fill
-          fillPercentage = 1.0;
-        } else if (distance <= expansionRadius) {
-          // In the expansion area - gradient from 60% to 15%
-          final expansionDistance = distance - radius;
-          final maxExpansion = expansionRadius - radius;
-          final normalizedDistance = expansionDistance / maxExpansion;
-          
-          // Linear gradient from 60% to 15%
-          fillPercentage = 0.6 - (normalizedDistance * 0.45); // 0.6 to 0.15
-        }
+            final dx = gx - centerX;
+            final dy = gy - centerY;
+            
+            // Calculate oval shape parameters
+            final radiusX = radius * ovalFactor; // Horizontal radius (narrower)
+            final radiusY = radius; // Vertical radius (full)
+            
+            // Elliptical distance calculation for oval shape
+            final ellipticalDistanceSquared = (dx * dx) / (radiusX * radiusX) + (dy * dy) / (radiusY * radiusY);
+            final ellipticalDistance = sqrt(ellipticalDistanceSquared);
+            
+            double fillPercentage = 0.0;
+            
+            if (ellipticalDistance <= 1.0) {
+              // Inside the oval - 100% fill
+              fillPercentage = 1.0;
+            } else if (ellipticalDistance <= 2.0) {
+              // In the expansion area - gradient from 60% to 15%
+              final expansionDistance = ellipticalDistance - 1.0;
+              final maxExpansion = 1.0; // From 1.0 to 2.0
+              final normalizedDistance = expansionDistance / maxExpansion;
+              
+              // Linear gradient from 60% to 15%
+              fillPercentage = 0.6 - (normalizedDistance * 0.45); // 0.6 to 0.15
+            }
         
         // Keep the maximum percentage (for overlapping areas)
         if (fillPercentage > 0) {
