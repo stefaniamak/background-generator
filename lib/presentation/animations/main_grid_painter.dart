@@ -31,8 +31,6 @@ class MainGridPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    print('MainGridPainter.paint() called with seed: ${config.randomSeed}');
-    
     // Draw dark background
     canvas.drawRect(
       Rect.fromLTWH(0, 0, size.width, size.height),
@@ -44,10 +42,7 @@ class MainGridPainter extends CustomPainter {
                                _cachedSize != size;
     
     if (needsRegeneration) {
-      print('Regenerating pattern (cache miss or size change)');
       _generateAndCachePattern(size);
-    } else {
-      print('Using cached pattern');
     }
     
     // Render the cached pattern
@@ -102,9 +97,7 @@ class MainGridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant MainGridPainter oldDelegate) {
-    final shouldRepaint = oldDelegate.config != config;
-    print('MainGridPainter.shouldRepaint() called: old=${oldDelegate.config.randomSeed}, new=${config.randomSeed}, result=$shouldRepaint');
-    // Each painter instance has its own cache, so no need to clear it here
-    return shouldRepaint;
+    // Only repaint when the config actually changes
+    return oldDelegate.config != config;
   }
 }

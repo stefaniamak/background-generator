@@ -10,12 +10,8 @@ class GridBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<BackgroundBloc, BackgroundState>(
-      buildWhen: (previous, current) {
-        print('GridBackground buildWhen called: ${previous.config.randomSeed} -> ${current.config.randomSeed}');
-        return previous.config != current.config;
-      },
+      buildWhen: (previous, current) => previous.config != current.config,
       builder: (context, state) {
-        print('GridBackground builder called with seed: ${state.config.randomSeed}');
         return SizedBox.expand(
           child: CustomPaint(
             painter: MainGridPainter(config: state.config),

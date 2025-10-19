@@ -95,28 +95,39 @@ class ParticlePainter extends BasePainter {
           }
 
           if (minDistanceToClosest < double.infinity) {
-            // Calculate fill percentage based on distance to closest 100% particle
-            double newFillPercentage;
+            // Smooth interpolation based on distance
+            // Start at 95% for very close (distance 0-1) and gradually decrease
+            final double newFillPercentage = _interpolateSize(minDistanceToClosest);
 
-            if (minDistanceToClosest <= PainterConstants.veryCloseDistance) {
-              newFillPercentage = PainterConstants.veryCloseFill; // 95% size - very large
-            } else if (minDistanceToClosest <= PainterConstants.closeDistance) {
-              newFillPercentage = PainterConstants.closeFill; // 80% size - large
-            } else if (minDistanceToClosest <= PainterConstants.mediumDistance) {
-              newFillPercentage = PainterConstants.mediumFill; // 60% size - medium
-            } else if (minDistanceToClosest <= PainterConstants.farDistance) {
-              newFillPercentage = PainterConstants.farFill; // 30% size - small
-            } else if (minDistanceToClosest <= PainterConstants.veryFarDistance) {
-              newFillPercentage = PainterConstants.veryFarFill; // 40% size - very far
-            } else {
-              newFillPercentage = PainterConstants.extremelyFarFill; // 25% size - extremely far
-            }
-
-            // Force the dramatic size difference
+            // Apply the smoothly interpolated size
             gridFill[gx][gy] = newFillPercentage;
           }
         }
       }
+    }
+  }
+
+  /// Smoothly interpolate particle size based on distance to nearest 100% particle
+  double _interpolateSize(double distance) {
+    // Much smoother curve: start at 90% and decrease very gradually to 30%
+    // Using a gentler curve for more natural, organic transitions
+    
+    if (distance <= 0.5) {
+      // Very close: 90%
+      return 0.90;
+    } else if (distance <= 8.0) {
+      // Very smooth, gradual decay from 90% to 30% over distance 0.5-8
+      // Using a gentler curve for smoother transitions
+      final t = (distance - 0.5) / 7.5; // Normalize to 0-1
+      
+      // Use a gentler curve: sqrt creates a more gradual falloff
+      // At t=0 (distance=0.5): returns 0.90
+      // At t=1 (distance=8): returns 0.30
+      final smoothFactor = 1.0 - sqrt(t); // Gentler than pow(t, 1.5)
+      return 0.30 + (0.60 * smoothFactor); // 0.60 = 0.90 - 0.30
+    } else {
+      // Very far: minimum size
+      return 0.30;
     }
   }
 }
