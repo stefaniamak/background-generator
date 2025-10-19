@@ -85,6 +85,15 @@ class ParticlePainter extends BasePainter {
 
         // Only process outside particles (non-100% fill but > 0)
         if (currentFill > 0 && currentFill < 0.99) {
+          // Check if this position should have an outside particle according to checkerboard pattern
+          final shouldKeep = (gx % 2 == gy % 2);
+          
+          if (!shouldKeep) {
+            // Remove particles that don't follow the checkerboard pattern
+            gridFill[gx][gy] = 0.0;
+            continue;
+          }
+          
           // Find the closest 100% particle
           double minDistanceToClosest = double.infinity;
           for (final (px, py) in hundredPercentParticles) {
@@ -99,7 +108,7 @@ class ParticlePainter extends BasePainter {
             // Start at 95% for very close (distance 0-1) and gradually decrease
             final double newFillPercentage = _interpolateSize(minDistanceToClosest);
 
-            // Apply the smoothly interpolated size
+            // Apply the smoothly interpolated size (only for checkerboard positions)
             gridFill[gx][gy] = newFillPercentage;
           }
         }
@@ -109,25 +118,26 @@ class ParticlePainter extends BasePainter {
 
   /// Smoothly interpolate particle size based on distance to nearest 100% particle
   double _interpolateSize(double distance) {
-    // Larger outside particles: start at 95% and decrease to 40%
+    // Outside particles get SMALLER as they get farther from 100% particles
+    // Start at 95% when close and decrease to 15% at the edge
     // Using a gentler curve for more natural, organic transitions
     
     if (distance <= 0.5) {
-      // Very close: 95%
+      // Very close: 95% - largest outside particles
       return 0.95;
     } else if (distance <= 8.0) {
-      // Smooth exponential decay from 95% to 40% over distance 0.5-8
-      // Using a gentler curve for smoother transitions
+      // Smooth decay from 95% to 15% over distance 0.5-8
+      // Particles get progressively SMALLER as they reach the edge
       final t = (distance - 0.5) / 7.5; // Normalize to 0-1
       
       // Use a gentler curve: sqrt creates a more gradual falloff
-      // At t=0 (distance=0.5): returns 0.95
-      // At t=1 (distance=8): returns 0.40
-      final smoothFactor = 1.0 - sqrt(t); // Gentler than pow(t, 1.5)
-      return 0.40 + (0.55 * smoothFactor); // 0.55 = 0.95 - 0.40
+      // At t=0 (distance=0.5): returns 0.95 (large)
+      // At t=1 (distance=8): returns 0.15 (small, at the edge)
+      final smoothFactor = 1.0 - sqrt(t); // Gentler falloff curve
+      return 0.15 + (0.80 * smoothFactor); // 0.80 = 0.95 - 0.15
     } else {
-      // Very far: minimum size increased to 40%
-      return 0.40;
+      // Very far (edge of spread): minimum size of 15%
+      return 0.15;
     }
   }
 }
