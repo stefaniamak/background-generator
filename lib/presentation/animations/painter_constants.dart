@@ -1,7 +1,7 @@
 /// Core constants for all painters
 class PainterConstants {
   // Grid and Cell Configuration
-  static const double cellSize = 5.0;
+  static const double cellSize = 4.0;
   static const double ovalFactor = 0.7; // Make particles 70% as wide as they are tall
   
   // Particle Generation
@@ -9,8 +9,8 @@ class PainterConstants {
   static const int maxGroups = 18;
   static const double groupColumnsReduction = 0.15; // Even fewer columns for more vertical spread
   
-  static const int minParticlesPerGroup = 2;
-  static const int maxParticlesPerGroup = 6;
+  static const int minParticlesPerGroup = 4;
+  static const int maxParticlesPerGroup = 10;
   
   static const int minParticleRadius = 5; // Increased from 4
   static const int maxParticleRadius = 12; // Increased from 9

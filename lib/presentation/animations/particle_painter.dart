@@ -109,25 +109,25 @@ class ParticlePainter extends BasePainter {
 
   /// Smoothly interpolate particle size based on distance to nearest 100% particle
   double _interpolateSize(double distance) {
-    // Much smoother curve: start at 90% and decrease very gradually to 30%
+    // Larger outside particles: start at 95% and decrease to 40%
     // Using a gentler curve for more natural, organic transitions
     
     if (distance <= 0.5) {
-      // Very close: 90%
-      return 0.90;
+      // Very close: 95%
+      return 0.95;
     } else if (distance <= 8.0) {
-      // Very smooth, gradual decay from 90% to 30% over distance 0.5-8
+      // Smooth exponential decay from 95% to 40% over distance 0.5-8
       // Using a gentler curve for smoother transitions
       final t = (distance - 0.5) / 7.5; // Normalize to 0-1
       
       // Use a gentler curve: sqrt creates a more gradual falloff
-      // At t=0 (distance=0.5): returns 0.90
-      // At t=1 (distance=8): returns 0.30
+      // At t=0 (distance=0.5): returns 0.95
+      // At t=1 (distance=8): returns 0.40
       final smoothFactor = 1.0 - sqrt(t); // Gentler than pow(t, 1.5)
-      return 0.30 + (0.60 * smoothFactor); // 0.60 = 0.90 - 0.30
+      return 0.40 + (0.55 * smoothFactor); // 0.55 = 0.95 - 0.40
     } else {
-      // Very far: minimum size
-      return 0.30;
+      // Very far: minimum size increased to 40%
+      return 0.40;
     }
   }
 }
