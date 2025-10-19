@@ -147,10 +147,15 @@ class BridgePainter extends BasePainter {
         final dy = y1 - y2;
         final distance = sqrt(dx * dx + dy * dy);
 
-        // Create bridge if particles are close enough
-        const bridgeThreshold = PainterConstants.diagonalBridgeThreshold;
+        // Create bridge if particles are close enough with selective connectivity
+        final baseThreshold = PainterConstants.diagonalBridgeThreshold;
+        final distanceVariation = baseThreshold * PainterConstants.bridgeDistanceVariation;
+        final bridgeThreshold = baseThreshold + (random.nextDouble() - 0.5) * distanceVariation;
 
-        if (distance < bridgeThreshold && distance > 0) {
+        // Add randomness to bridge creation for selective connectivity
+        final shouldCreateBridge = random.nextDouble() < (1.0 - PainterConstants.bridgeRandomnessFactor);
+
+        if (distance < bridgeThreshold && distance > 0 && shouldCreateBridge) {
           // Create a diagonal bridge between the outside particles
           _createDiagonalBridgeBetweenOutsideParticles(gridFill, x1, y1, x2, y2, gridWidth, gridHeight);
         }
@@ -193,8 +198,10 @@ class BridgePainter extends BasePainter {
           final particle2Fill = gridFill[x2][y2];
           final averageFill = (particle1Fill + particle2Fill) / 2;
 
-          // Apply bridge fill with slight reduction for bridge effect
-          final bridgeFill = averageFill * PainterConstants.diagonalBridgeFillReduction; // 90% of average outside particle fill
+          // Apply bridge fill with variation for selective connectivity
+          final baseReduction = PainterConstants.diagonalBridgeFillReduction;
+          final fillVariation = random.nextDouble() * 0.3; // 30% variation
+          final bridgeFill = averageFill * (baseReduction + fillVariation);
 
           // Only apply if it increases the fill percentage
           final existingFill = gridFill[bridgeX][bridgeY];

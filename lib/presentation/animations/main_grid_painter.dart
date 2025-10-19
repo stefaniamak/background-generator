@@ -88,10 +88,13 @@ class MainGridPainter extends CustomPainter {
     // Step 6: Convert outside particles adjacent to 100% particles to 100% particles
     _patternPainter.convertAdjacentOutsideTo100Percent(gridFill, gridWidth, gridHeight);
 
-    // Step 7: Create diagonal bridges between close outside particles
+    // Step 7: Upgrade particles that are completely surrounded by 100% particles
+    _patternPainter.upgradeSurroundedParticles(gridFill, gridWidth, gridHeight);
+
+    // Step 8: Create diagonal bridges between close outside particles
     _bridgePainter.createDiagonalOutsideBridges(gridFill, gridWidth, gridHeight);
 
-    // Step 8: Apply dramatic size differences to outside particles (LAST STEP)
+    // Step 9: Apply dramatic size differences to outside particles (LAST STEP)
     _particlePainter.applyDistanceBasedSizing(gridFill, gridWidth, gridHeight);
   }
 

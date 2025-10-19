@@ -150,4 +150,56 @@ class PatternPainter extends BasePainter {
       }
     }
   }
+
+  /// Upgrade particles that are completely surrounded by 100% particles
+  void upgradeSurroundedParticles(List<List<double>> gridFill, int gridWidth, int gridHeight) {
+    bool hasChanges = true;
+    int iterations = 0;
+    const maxIterations = 10; // Prevent infinite loops
+
+    // Keep upgrading until no more changes can be made
+    while (hasChanges && iterations < maxIterations) {
+      hasChanges = false;
+      iterations++;
+
+      // Create a copy to avoid modifying while iterating
+      final originalFill = List.generate(gridWidth, (i) => List.generate(gridHeight, (j) => gridFill[i][j]));
+
+      // Upgrade particles that are completely surrounded by 100% particles
+      for (int gx = 0; gx < gridWidth; gx++) {
+        for (int gy = 0; gy < gridHeight; gy++) {
+          final currentFill = originalFill[gx][gy];
+
+          // Only process non-100% particles (including empty cells)
+          if (currentFill < 0.99) {
+            int surroundedCount = 0;
+            int totalNeighbors = 0;
+
+            // Check all 8 surrounding positions (including diagonals)
+            final surroundingPositions = [
+              (gx - 1, gy - 1), (gx, gy - 1), (gx + 1, gy - 1), // Top row
+              (gx - 1, gy),                   (gx + 1, gy),     // Middle row (skip center)
+              (gx - 1, gy + 1), (gx, gy + 1), (gx + 1, gy + 1)  // Bottom row
+            ];
+
+            for (final (surGx, surGy) in surroundingPositions) {
+              if (surGx >= 0 && surGx < gridWidth && surGy >= 0 && surGy < gridHeight) {
+                totalNeighbors++;
+                final surroundingFill = originalFill[surGx][surGy];
+                if (surroundingFill >= 0.99) { // Surrounded by 100% particle
+                  surroundedCount++;
+                }
+              }
+            }
+
+            // Upgrade to 100% if completely surrounded (all neighbors are 100%)
+            if (totalNeighbors > 0 && surroundedCount == totalNeighbors) {
+              gridFill[gx][gy] = 1.0; // Upgrade to 100% particle
+              hasChanges = true; // Mark that we made a change
+            }
+          }
+        }
+      }
+    }
+  }
 }

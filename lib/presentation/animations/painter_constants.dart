@@ -5,31 +5,31 @@ class PainterConstants {
   static const double ovalFactor = 0.7; // Make particles 70% as wide as they are tall
   
   // Particle Generation
-  static const int minGroups = 6;
-  static const int maxGroups = 9;
-  static const double groupColumnsReduction = 0.25; // 75% fewer columns for vertical distribution
+  static const int minGroups = 12;
+  static const int maxGroups = 18;
+  static const double groupColumnsReduction = 0.15; // Even fewer columns for more vertical spread
   
-  static const int minParticlesPerGroup = 8;
-  static const int maxParticlesPerGroup = 28;
+  static const int minParticlesPerGroup = 2;
+  static const int maxParticlesPerGroup = 6;
   
-  static const int minParticleRadius = 4;
-  static const int maxParticleRadius = 9;
+  static const int minParticleRadius = 5; // Increased from 4
+  static const int maxParticleRadius = 12; // Increased from 9
   
-  // Distance and Spread Configuration
-  static const double minDistancePercentage = 0.05; // 5% of screen diagonal
-  static const double maxDistancePercentage = 0.20; // 20% of screen diagonal
-  static const double horizontalSpreadBase = 0.06; // Base horizontal spread
-  static const double horizontalVariationFactor = 0.05; // Horizontal variation factor
+  // Distance and Spread Configuration - More compact and vertical
+  static const double minDistancePercentage = 0.03; // Reduced from 0.05 - closer particles
+  static const double maxDistancePercentage = 0.12; // Reduced from 0.20 - more compact groups
+  static const double horizontalSpreadBase = 0.03; // Reduced from 0.06 - less horizontal spread
+  static const double horizontalVariationFactor = 0.02; // Reduced from 0.05 - more vertical
   
-  // Particle Expansion
-  static const double expansionRadiusMultiplier = 2.5; // 150% expansion
-  static const double expansionDistanceMax = 2.5; // Maximum expansion distance
-  static const double expansionGradientMax = 1.5; // Maximum expansion gradient
+  // Particle Expansion - Reduced outside radius
+  static const double expansionRadiusMultiplier = 1.9; // Reduced from 2.2 - smaller outside radius
+  static const double expansionDistanceMax = 1.9; // Reduced from 2.2 - shorter expansion
+  static const double expansionGradientMax = 1.4; // Reduced from 1.6 - less gradient
   
-  // Fill Percentages
-  static const double baseFillPercentage = 0.9; // Base fill for expansion areas
-  static const double minFillPercentage = 0.2; // Minimum fill for expansion areas
-  static const double fillGradientRange = 0.7; // Fill gradient range (0.9 - 0.2)
+  // Fill Percentages - Increased for larger particles
+  static const double baseFillPercentage = 0.85; // Increased from 0.7 - more solid fill
+  static const double minFillPercentage = 0.25; // Increased from 0.15 - larger minimum
+  static const double fillGradientRange = 0.6; // Increased from 0.55 - larger range
   
   // Distance-Based Sizing
   static const double veryCloseFill = 0.95; // 95% size - very close to 100% particle
@@ -46,28 +46,32 @@ class PainterConstants {
   static const double farDistance = 4.0;
   static const double veryFarDistance = 6.0;
   
-  // Bridge Configuration
-  static const double bridgeThresholdMultiplier = 1.8; // 1.8x combined radius
-  static const double bridgeVerticalBias = 2.0; // Vertical connection bias
-  static const double bridgeCurveOffset = 1.2; // Curve offset for smooth bridges
-  static const double bridgeStepsMultiplier = 4.0; // Steps multiplier for smoothness
-  static const double bridgeWidthMultiplier = 1.2; // Bridge width multiplier
-  static const double bridgeExtendedRadiusMultiplier = 1.5; // Extended radius for 100% fill
+  // Bridge Configuration - Selective connectivity
+  static const double bridgeThresholdMultiplier = 2.1; // Increased - more selective bridging
+  static const double bridgeVerticalBias = 2.8; // Increased - stronger vertical preference
+  static const double bridgeCurveOffset = 1.4; // Increased - more curved connections
+  static const double bridgeStepsMultiplier = 4.0; // Increased - smoother connections
+  static const double bridgeWidthMultiplier = 1.4; // Increased - wider bridges when they connect
+  static const double bridgeExtendedRadiusMultiplier = 1.6; // Increased - stronger connections
   
-  // Bridge Fill Configuration
-  static const double bridgeProximityFill = 1.0; // 100% fill near particles
-  static const double bridgeMinFill = 0.2; // Minimum bridge fill
-  static const double bridgeMaxFill = 0.9; // Maximum bridge fill
-  static const double bridgeFillRange = 0.7; // Bridge fill range
+  // Bridge Fill Configuration - Varied connectivity
+  static const double bridgeProximityFill = 0.95; // Very solid when close
+  static const double bridgeMinFill = 0.15; // Lower minimum for weak connections
+  static const double bridgeMaxFill = 0.85; // Higher maximum for strong connections
+  static const double bridgeFillRange = 0.7; // Larger range for more variation
   
-  // Diagonal Bridge Configuration
-  static const double diagonalBridgeThreshold = 5.0; // Grid cells for diagonal bridges
-  static const double diagonalBridgeStepsMultiplier = 2.0; // Steps for diagonal bridges
-  static const double diagonalBridgeFillReduction = 0.9; // 90% of average fill
+  // Bridge Randomness - For selective connectivity
+  static const double bridgeRandomnessFactor = 0.3; // 30% randomness in bridge creation
+  static const double bridgeDistanceVariation = 0.2; // 20% variation in distance thresholds
   
-  // Pattern Rules
-  static const int gapCheckDistance = 4; // Check up to 4 cells for gaps
-  static const int maxGapSize = 2; // Maximum gap size to fill
+  // Diagonal Bridge Configuration - More selective
+  static const double diagonalBridgeThreshold = 8.0; // Increased - more selective diagonal bridging
+  static const double diagonalBridgeStepsMultiplier = 2.0; // Increased - smoother when they connect
+  static const double diagonalBridgeFillReduction = 0.6; // Reduced - weaker diagonal connections
+  
+  // Pattern Rules - Increased for more connections
+  static const int gapCheckDistance = 4; // Increased from 3 - check more cells for gaps
+  static const int maxGapSize = 2; // Increased from 1 - fill larger gaps
   
   // Rendering Configuration
   static const double organicVariationChance = 0.5; // 50% chance for organic variation
