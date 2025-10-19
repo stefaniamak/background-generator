@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:equatable/equatable.dart';
+import '../../presentation/animations/painter_constants.dart';
 
-class BackgroundConfig {
+class BackgroundConfig extends Equatable {
   final Color darkColor;
   final Color lightColor;
   final int randomSeed;
@@ -24,10 +26,13 @@ class BackgroundConfig {
   }
 
   static BackgroundConfig initial() {
-    return const BackgroundConfig(
-      darkColor: Color(0xFF000000),     // Black background
-      lightColor: Color(0xFF282828),    // Very dark grey pattern
-      randomSeed: 42,                   // Fixed seed for consistent pattern
+    return BackgroundConfig(
+      darkColor: const Color(PainterConstants.darkColorValue),     // Black background
+      lightColor: const Color(PainterConstants.lightColorValue),   // Very dark grey pattern
+      randomSeed: PainterConstants.defaultRandomSeed,              // Fixed seed for consistent pattern
     );
   }
+
+  @override
+  List<Object?> get props => [darkColor, lightColor, randomSeed];
 }

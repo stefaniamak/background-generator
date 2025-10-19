@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../logic/bloc/background_bloc.dart';
 import '../../logic/bloc/background_event.dart';
+import '../../logic/bloc/background_state.dart';
 import '../widgets/grid_background.dart';
 
 class BackgroundScreen extends StatelessWidget {
@@ -12,13 +13,26 @@ class BackgroundScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       body: const GridBackground(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Regenerate pattern with new random seed
-          context.read<BackgroundBloc>().add(RegeneratePattern());
+      floatingActionButton: BlocBuilder<BackgroundBloc, BackgroundState>(
+        buildWhen: (previous, current) => previous.isRefreshing != current.isRefreshing,
+        builder: (context, state) {
+          return FloatingActionButton(
+            onPressed: state.isRefreshing ? null : () {
+              context.read<BackgroundBloc>().add(RegeneratePattern());
+            },
+            backgroundColor: state.isRefreshing ? Colors.grey : Colors.white,
+            child: state.isRefreshing 
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                  ),
+                )
+              : const Icon(Icons.refresh, color: Colors.black),
+          );
         },
-        backgroundColor: Colors.white,
-        child: const Icon(Icons.refresh, color: Colors.black),
       ),
     );
   }
