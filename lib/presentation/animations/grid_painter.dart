@@ -22,8 +22,8 @@ class GridPainter extends CustomPainter {
   void _drawPattern(Canvas canvas, Size size) {
     final random = Random(config.randomSeed);
     
-    // Calculate grid size based on screen size and cell size (5 pixels per cell)
-    const cellSize = 5.0;
+    // Calculate grid size based on screen size and cell size (7 pixels per cell)
+    const cellSize = 7.0;
     final gridWidth = (size.width / cellSize).ceil();
     final gridHeight = (size.height / cellSize).ceil();
     
@@ -33,55 +33,73 @@ class GridPainter extends CustomPainter {
     // Generate random center points in clustered groups
     final centerPoints = <_CircleInfo>[];
     
-    // Create multiple groups spread around the screen
-    final numGroups = 1 + random.nextInt(2); // Random number of groups (1-2)
+    // Create fewer groups evenly distributed
+    final numGroups = 8 + random.nextInt(5); // 8-12 groups
     
-    // Define opposing region pairs (far from each other)
-    final opposingRegionPairs = [
-      [
-        {'minX': 0, 'maxX': gridWidth ~/ 3, 'minY': 0, 'maxY': gridHeight ~/ 3}, // Top-left
-        {'minX': gridWidth * 2 ~/ 3, 'maxX': gridWidth, 'minY': gridHeight * 2 ~/ 3, 'maxY': gridHeight}, // Bottom-right
-      ],
-      [
-        {'minX': gridWidth * 2 ~/ 3, 'maxX': gridWidth, 'minY': 0, 'maxY': gridHeight ~/ 3}, // Top-right
-        {'minX': 0, 'maxX': gridWidth ~/ 3, 'minY': gridHeight * 2 ~/ 3, 'maxY': gridHeight}, // Bottom-left
-      ],
-      [
-        {'minX': gridWidth ~/ 3, 'maxX': gridWidth * 2 ~/ 3, 'minY': 0, 'maxY': gridHeight ~/ 4}, // Top-center
-        {'minX': gridWidth ~/ 3, 'maxX': gridWidth * 2 ~/ 3, 'minY': gridHeight * 3 ~/ 4, 'maxY': gridHeight}, // Bottom-center
-      ],
-      [
-        {'minX': 0, 'maxX': gridWidth ~/ 4, 'minY': gridHeight ~/ 3, 'maxY': gridHeight * 2 ~/ 3}, // Left-center
-        {'minX': gridWidth * 3 ~/ 4, 'maxX': gridWidth, 'minY': gridHeight ~/ 3, 'maxY': gridHeight * 2 ~/ 3}, // Right-center
-      ],
-    ];
+    // Calculate grid layout for very vertical distribution
+    // Very few columns (very narrow) and many rows (very tall)
+    final cols = max(1, (sqrt(numGroups) * 0.3).ceil()); // 70% fewer columns - mainly vertical
+    final rows = (numGroups / cols).ceil();
     
-    // Pick a random pair of opposing regions
-    final selectedPair = opposingRegionPairs[random.nextInt(opposingRegionPairs.length)];
+    // Calculate cell size for grid distribution
+    final cellWidth = gridWidth / cols;
+    final cellHeight = gridHeight / rows;
+    
+    // Calculate screen diagonal for percentage-based distance
+    final screenDiagonal = sqrt(gridWidth * gridWidth + gridHeight * gridHeight);
     
     for (int group = 0; group < numGroups; group++) {
-      // Get opposing region for this group (first group gets first region, second gets opposite)
-      final region = selectedPair[group % selectedPair.length];
+      // Calculate grid position for this group
+      final col = group % cols;
+      final row = group ~/ cols;
       
-      // Random position within this region
-      final groupCenterX = region['minX']! + random.nextInt(region['maxX']! - region['minX']!);
-      final groupCenterY = region['minY']! + random.nextInt(region['maxY']! - region['minY']!);
+      // Random position within this cell for even distribution
+      final groupStartX = (col * cellWidth + random.nextDouble() * cellWidth).round().clamp(0, gridWidth - 1);
+      final groupStartY = (row * cellHeight + random.nextDouble() * cellHeight).round().clamp(0, gridHeight - 1);
       
-      // Random number of points in this group (varying sizes)
-      final pointsInGroup = 15 + random.nextInt(60); // 15-75 points per group
+      // Random number of particles in this group (varying sizes)
+      final particlesInGroup = 6 + random.nextInt(12); // 6-18 particles per group
       
-      // Random cluster radius for this group
-      final clusterRadius = 30 + random.nextInt(70); // 30-100 pixels cluster radius
+      // Calculate distance range: 3-15% of screen diagonal (increased for more vertical spread)
+      final minDistance = screenDiagonal * 0.03; // 3% of diagonal
+      final maxDistance = screenDiagonal * 0.15; // 15% of diagonal
       
-      // Generate points clustered around this group's center
-      for (int i = 0; i < pointsInGroup; i++) {
-        // Random angle and distance from group center
-        final angle = random.nextDouble() * 2 * pi;
-        final distance = random.nextDouble() * clusterRadius;
+      // First particle at the group starting position
+      final firstRadius = 4 + random.nextInt(5); // Random radius 4-9 pixels
+      centerPoints.add(_CircleInfo(
+        centerX: groupStartX,
+        centerY: groupStartY,
+        radius: firstRadius,
+      ));
+      
+      // Generate remaining particles around the first particle
+      for (int i = 1; i < particlesInGroup; i++) {
+        // Random distance from first particle (2-8% of screen diagonal)
+        final distance = minDistance + random.nextDouble() * (maxDistance - minDistance);
         
-        final centerX = (groupCenterX + (cos(angle) * distance)).round().clamp(0, gridWidth - 1);
-        final centerY = (groupCenterY + (sin(angle) * distance)).round().clamp(0, gridHeight - 1);
-        final radius = 5 + random.nextInt(15); // Random radius 5-20 pixels
+        // Calculate horizontal constraint based on distance
+        // The farther away, the less horizontal spread allowed
+        // Normalize distance to 0-1 range
+        final normalizedDistance = (distance - minDistance) / (maxDistance - minDistance);
+        
+        // Horizontal spread: starts at 0.08 (8% spread) and reduces to 0 as distance increases
+        final horizontalSpread = 0.08 * (1.0 - normalizedDistance); // 0.08 to 0.0
+        
+        // Random angle, but mainly vertical
+        // For far particles (high normalizedDistance), force almost perfectly vertical
+        final baseAngle = (random.nextDouble() - 0.5) * pi; // -π/2 to π/2 (vertical bias)
+        final horizontalVariation = (random.nextDouble() - 0.5) * pi * 0.05 * horizontalSpread; // ±2.5% of π, scaled by spread
+        final angle = baseAngle + horizontalVariation;
+        
+        final centerX = (groupStartX + (cos(angle) * distance)).round().clamp(0, gridWidth - 1);
+        final centerY = (groupStartY + (sin(angle) * distance)).round().clamp(0, gridHeight - 1);
+        
+        // Radius decreases with distance from first particle
+        // Close particles: 4-9 pixels
+        // Far particles: 2-4 pixels
+        final minRadius = 2 + (2 * (1.0 - normalizedDistance)).round(); // 4 to 2
+        final maxRadius = 4 + (5 * (1.0 - normalizedDistance)).round(); // 9 to 4
+        final radius = minRadius + random.nextInt((maxRadius - minRadius + 1).clamp(1, 100));
         
         centerPoints.add(_CircleInfo(
           centerX: centerX,
@@ -106,7 +124,7 @@ class GridPainter extends CustomPainter {
     final radius = circle.radius;
     
     // Fill the main white circle (100% fill)
-    final expansionRadius = (radius * 1.5).round(); // 50% expansion
+    final expansionRadius = (radius * 2.0).round(); // 100% expansion
     
     for (int gx = (centerX - expansionRadius).clamp(0, gridWidth - 1); 
          gx <= (centerX + expansionRadius).clamp(0, gridWidth - 1); 
@@ -144,9 +162,9 @@ class GridPainter extends CustomPainter {
   }
 
   void _renderGridToCanvas(Canvas canvas, List<List<double>> gridFill, Size size, int gridWidth, int gridHeight) {
-    // Each grid cell = 5 pixels
-    final cellWidth = 5.0;
-    final cellHeight = 5.0;
+    // Each grid cell = 7 pixels
+    final cellWidth = 7.0;
+    final cellHeight = 7.0;
     
     final whitePaint = Paint()..color = config.lightColor;
     
@@ -167,8 +185,18 @@ class GridPainter extends CustomPainter {
           final shapeX = x + (cellWidth - shapeWidth) / 2;
           final shapeY = y + (cellHeight - shapeHeight) / 2;
           
-          canvas.drawRect(
-            Rect.fromLTWH(shapeX, shapeY, shapeWidth, shapeHeight),
+          // Calculate corner radius based on fill percentage
+          // 100% fill (1.0) = 0% radius (square)
+          // 0% fill (0.0) = 100% radius (circle)
+          // Inverted relationship: lower percentage = more circular
+          final radiusPercentage = 1.0 - fillPercentage;
+          final cornerRadius = min(shapeWidth, shapeHeight) / 2 * radiusPercentage;
+          
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(
+              Rect.fromLTWH(shapeX, shapeY, shapeWidth, shapeHeight),
+              Radius.circular(cornerRadius),
+            ),
             whitePaint,
           );
         }
