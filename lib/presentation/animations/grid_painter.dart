@@ -128,18 +128,22 @@ class GridPainter extends CustomPainter {
         
         // Create diagonal bridges between close outside particles
         _createDiagonalOutsideBridges(gridFill, gridWidth, gridHeight);
-    
-    // Render the grid to canvas
-    _renderGridToCanvas(canvas, gridFill, size, gridWidth, gridHeight);
+        
+        // Apply dramatic size differences to outside particles (LAST STEP)
+        _applyDramaticSizeDifferences(gridFill, gridWidth, gridHeight);
+        
+        // Render the grid to canvas
+        _renderGridToCanvas(canvas, gridFill, size, gridWidth, gridHeight);
   }
 
-      void _fillCircleInGrid(List<List<double>> gridFill, _CircleInfo circle, int gridWidth, int gridHeight, Random random) {
-        final centerX = circle.centerX;
-        final centerY = circle.centerY;
-        final radius = circle.radius;
-        
-        // Create oval shape by varying radius based on angle
-        final ovalFactor = 0.7; // Make particles 70% as wide as they are tall (elongated vertically)
+
+  void _fillCircleInGrid(List<List<double>> gridFill, _CircleInfo circle, int gridWidth, int gridHeight, Random random) {
+    final centerX = circle.centerX;
+    final centerY = circle.centerY;
+    final radius = circle.radius;
+    
+    // Create oval shape by varying radius based on angle
+    final ovalFactor = 0.7; // Make particles 70% as wide as they are tall (elongated vertically)
     
     // Fill the main white circle (100% fill)
     final expansionRadius = (radius * 2.0).round(); // 100% expansion
@@ -151,44 +155,103 @@ class GridPainter extends CustomPainter {
            gy <= (centerY + expansionRadius).clamp(0, gridHeight - 1); 
            gy++) {
         
-            final dx = gx - centerX;
-            final dy = gy - centerY;
+        final dx = gx - centerX;
+        final dy = gy - centerY;
+        
+        // Calculate oval shape parameters
+        final radiusX = radius * ovalFactor; // Horizontal radius (narrower)
+        final radiusY = radius; // Vertical radius (full)
+        
+        // Elliptical distance calculation for oval shape
+        final ellipticalDistanceSquared = (dx * dx) / (radiusX * radiusX) + (dy * dy) / (radiusY * radiusY);
+        final ellipticalDistance = sqrt(ellipticalDistanceSquared);
+        
+        double fillPercentage = 0.0;
+        
+        if (ellipticalDistance <= 1.0) {
+          // Inside the oval - 100% fill
+          fillPercentage = 1.0;
+        } else if (ellipticalDistance <= 2.0) {
+          // In the expansion area - only keep diagonal particles in checkerboard pattern
+          // Check if this grid position should have an outside particle (diagonal pattern)
+          final shouldKeep = (gx % 2 == gy % 2); // Diagonal checkerboard pattern
+          
+          if (shouldKeep) {
+            // Gradient from 90% to 20% for kept particles
+            final expansionDistance = ellipticalDistance - 1.0;
+            final maxExpansion = 1.0; // From 1.0 to 2.0
+            final normalizedDistance = expansionDistance / maxExpansion;
             
-            // Calculate oval shape parameters
-            final radiusX = radius * ovalFactor; // Horizontal radius (narrower)
-            final radiusY = radius; // Vertical radius (full)
-            
-            // Elliptical distance calculation for oval shape
-            final ellipticalDistanceSquared = (dx * dx) / (radiusX * radiusX) + (dy * dy) / (radiusY * radiusY);
-            final ellipticalDistance = sqrt(ellipticalDistanceSquared);
-            
-            double fillPercentage = 0.0;
-            
-            if (ellipticalDistance <= 1.0) {
-              // Inside the oval - 100% fill
-              fillPercentage = 1.0;
-            } else if (ellipticalDistance <= 2.0) {
-              // In the expansion area - only keep diagonal particles in checkerboard pattern
-              // Check if this grid position should have an outside particle (diagonal pattern)
-              final shouldKeep = (gx % 2 == gy % 2); // Diagonal checkerboard pattern
-              
-              if (shouldKeep) {
-                // Gradient from 60% to 15% for kept particles
-                final expansionDistance = ellipticalDistance - 1.0;
-                final maxExpansion = 1.0; // From 1.0 to 2.0
-                final normalizedDistance = expansionDistance / maxExpansion;
-                
-                // Linear gradient from 80% to 25% (larger size range)
-                fillPercentage = 0.8 - (normalizedDistance * 0.55); // 0.8 to 0.25
-              } else {
-                // Skip this particle - no outside expansion here
-                fillPercentage = 0.0;
-              }
-            }
+            // Linear gradient from 90% to 20% (higher close, lower far)
+            fillPercentage = 0.9 - (normalizedDistance * 0.7); // 0.9 to 0.2
+          } else {
+            // Skip this particle - no outside expansion here
+            fillPercentage = 0.0;
+          }
+        }
         
         // Keep the maximum percentage (for overlapping areas)
         if (fillPercentage > 0) {
           gridFill[gx][gy] = max(gridFill[gx][gy], fillPercentage);
+        }
+      }
+    }
+  }
+
+  void _applyDramaticSizeDifferences(List<List<double>> gridFill, int gridWidth, int gridHeight) {
+    // Find all 100% particles
+    final hundredPercentParticles = <(int, int)>[];
+    for (int gx = 0; gx < gridWidth; gx++) {
+      for (int gy = 0; gy < gridHeight; gy++) {
+        if (gridFill[gx][gy] >= 0.99) {
+          hundredPercentParticles.add((gx, gy));
+        }
+      }
+    }
+    
+    // Apply very dramatic size differences to outside particles based on distance to closest 100% particle
+    for (int gx = 0; gx < gridWidth; gx++) {
+      for (int gy = 0; gy < gridHeight; gy++) {
+        final currentFill = gridFill[gx][gy];
+        
+        // Only process outside particles (non-100% fill but > 0)
+        if (currentFill > 0 && currentFill < 0.99) {
+          // Find the closest 100% particle to this outside particle
+          double minDistanceToClosest = double.infinity;
+          for (final (px, py) in hundredPercentParticles) {
+            final dx = gx - px;
+            final dy = gy - py;
+            final distanceToThis100Percent = sqrt(dx * dx + dy * dy);
+            minDistanceToClosest = min(minDistanceToClosest, distanceToThis100Percent);
+          }
+          
+          if (minDistanceToClosest < double.infinity) {
+            // Calculate fill percentage based on distance to the closest 100% particle
+            double newFillPercentage;
+            
+            if (minDistanceToClosest <= 1.0) {
+              // Very close to closest 100% particle
+              newFillPercentage = 0.95; // 95% size - much larger
+            } else if (minDistanceToClosest <= 2.0) {
+              // Close to closest 100% particle
+              newFillPercentage = 0.8; // 80% size - much larger
+            } else if (minDistanceToClosest <= 3.0) {
+              // Medium distance from closest 100% particle
+              newFillPercentage = 0.6; // 60% size - much larger
+            } else if (minDistanceToClosest <= 4.0) {
+              // Far distance from closest 100% particle
+              newFillPercentage = 0.3; // 30% size - much larger
+            } else if (minDistanceToClosest <= 6.0) {
+              // Very far distance from closest 100% particle
+              newFillPercentage = 0.4; // 40% size - much larger
+            } else {
+              // Extremely far distance from closest 100% particle
+              newFillPercentage = 0.25; // 25% size - much larger
+            }
+            
+            // Force the dramatic size difference based on distance to closest 100% particle
+            gridFill[gx][gy] = newFillPercentage;
+          }
         }
       }
     }
@@ -218,6 +281,7 @@ class GridPainter extends CustomPainter {
       }
     }
   }
+
 
   void _fillGapsBetweenParticles(List<List<double>> gridFill, int gridWidth, int gridHeight) {
     // Find gaps between 100% particles and fill them if they're small enough
@@ -499,9 +563,9 @@ class GridPainter extends CustomPainter {
                 // 100% fill in extended area around 100% particles
                 bridgeFill = 1.0;
               } else {
-                // Follow the same gradient as the outside expansion areas (80% to 25%)
+                // Follow the same gradient as the outside expansion areas (90% to 20%)
                 final proximityTo100Percent = (1.0 - (minDistToParticle / (bridgeRadius + particle1.radius + particle2.radius))).clamp(0.0, 1.0);
-                bridgeFill = (0.8 - proximityTo100Percent * 0.55).clamp(0.25, 0.8); // 80% to 25% fill
+                bridgeFill = (0.9 - proximityTo100Percent * 0.7).clamp(0.2, 0.9); // 90% to 20% fill
               }
               
               // Blend with existing fill (take maximum)
