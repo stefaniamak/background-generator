@@ -246,16 +246,17 @@ class GridPainter extends CustomPainter {
               final minDistToParticle = min(distToParticle1, distToParticle2);
               
               // The closer to a 100% particle, the higher the fill percentage
-              // Right next to 100% particles: 100% fill
+              // Extended area around 100% particles: 100% fill
               // At maximum bridge radius: 30% fill
               double bridgeFill;
-              if (minDistToParticle <= min(particle1.radius, particle2.radius)) {
-                // 100% fill right next to 100% particles
+              final extendedRadius = min(particle1.radius, particle2.radius) * 1.5; // 50% larger area for 100% fill
+              if (minDistToParticle <= extendedRadius) {
+                // 100% fill in extended area around 100% particles
                 bridgeFill = 1.0;
               } else {
-                // Gradual transition from 100% to 30% based on distance
+                // Follow the same gradient as the outside expansion areas (60% to 15%)
                 final proximityTo100Percent = (1.0 - (minDistToParticle / (bridgeRadius + particle1.radius + particle2.radius))).clamp(0.0, 1.0);
-                bridgeFill = (0.3 + proximityTo100Percent * 0.7).clamp(0.3, 1.0);
+                bridgeFill = (0.6 - proximityTo100Percent * 0.45).clamp(0.15, 0.6); // 60% to 15% fill
               }
               
               // Blend with existing fill (take maximum)
