@@ -57,8 +57,8 @@ class GridPainter extends CustomPainter {
       final groupStartX = (col * cellWidth + random.nextDouble() * cellWidth).round().clamp(0, gridWidth - 1);
       final groupStartY = (row * cellHeight + random.nextDouble() * cellHeight).round().clamp(0, gridHeight - 1);
       
-          // Random number of particles in this group (much more variation)
-          final particlesInGroup = 4 + random.nextInt(20); // 4-24 particles per group (more varied sizes)
+          // Random number of particles in this group (reduced density)
+          final particlesInGroup = 3 + random.nextInt(12); // 3-15 particles per group (reduced from 4-24)
       
       // Calculate distance range: 5-20% of screen diagonal (even more vertical spread)
       final minDistance = screenDiagonal * 0.05; // 5% of diagonal
@@ -189,7 +189,12 @@ class GridPainter extends CustomPainter {
         final combinedRadius = particle1.radius + particle2.radius;
         final bridgeThreshold = combinedRadius * 1.8;
         
-        if (distance < bridgeThreshold && distance > 0) {
+        // Only create bridges for vertical connections (similar Y coordinates)
+        final yDifference = (particle1.centerY - particle2.centerY).abs();
+        final xDifference = (particle1.centerX - particle2.centerX).abs();
+        final isVerticalConnection = yDifference > xDifference * 2; // Much more vertical than horizontal
+        
+        if (distance < bridgeThreshold && distance > 0 && isVerticalConnection) {
           // Create a liquid bridge between the particles
           _createBridgeBetweenParticles(gridFill, particle1, particle2, gridWidth, gridHeight, random);
         }
