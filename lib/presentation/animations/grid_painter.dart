@@ -30,12 +30,12 @@ class GridPainter extends CustomPainter {
     
     // Generate random center points
     final centerPoints = <_CircleInfo>[];
-    final numCenters = 150 + random.nextInt(200); // Random number of centers (150-350)
+    final numCenters = 300 + random.nextInt(300); // Random number of centers (300-600)
     
     for (int i = 0; i < numCenters; i++) {
       final centerX = random.nextInt(gridSize);
       final centerY = random.nextInt(gridSize);
-      final radius = 8 + random.nextInt(20); // Random radius 8-28 pixels
+      final radius = 5 + random.nextInt(15); // Random radius 5-20 pixels
       
       centerPoints.add(_CircleInfo(
         centerX: centerX,
@@ -59,7 +59,7 @@ class GridPainter extends CustomPainter {
     final radius = circle.radius;
     
     // Fill the main white circle (100% fill)
-    final expansionRadius = (radius * 1.3).round(); // 30% expansion
+    final expansionRadius = (radius * 1.5).round(); // 50% expansion
     
     for (int gx = (centerX - expansionRadius).clamp(0, gridSize - 1); 
          gx <= (centerX + expansionRadius).clamp(0, gridSize - 1); 
@@ -79,18 +79,18 @@ class GridPainter extends CustomPainter {
           // Inside the white circle - 100% fill
           fillPercentage = 1.0;
         } else if (distance <= expansionRadius) {
-          // In the expansion area - gradient from 60% to 10%
+          // In the expansion area - gradient from 60% to 15%
           final expansionDistance = distance - radius;
           final maxExpansion = expansionRadius - radius;
           final normalizedDistance = expansionDistance / maxExpansion;
           
-              // Linear gradient from 60% to 15%
-              fillPercentage = 0.6 - (normalizedDistance * 0.45); // 0.6 to 0.15
+          // Linear gradient from 60% to 15%
+          fillPercentage = 0.6 - (normalizedDistance * 0.45); // 0.6 to 0.15
         }
         
-        // Add to existing fill percentage (for overlapping areas)
+        // Keep the maximum percentage (for overlapping areas)
         if (fillPercentage > 0) {
-          gridFill[gx][gy] = (gridFill[gx][gy] + fillPercentage).clamp(0.0, 1.0);
+          gridFill[gx][gy] = max(gridFill[gx][gy], fillPercentage);
         }
       }
     }
