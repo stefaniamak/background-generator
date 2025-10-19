@@ -109,10 +109,13 @@ class GridPainter extends CustomPainter {
       }
     }
     
-    // Fill the grid with pattern
-    for (final circle in centerPoints) {
-      _fillCircleInGrid(gridFill, circle, gridWidth, gridHeight, random);
-    }
+        // Fill the grid with pattern
+        for (final circle in centerPoints) {
+          _fillCircleInGrid(gridFill, circle, gridWidth, gridHeight, random);
+        }
+        
+        // Create liquid-like bridges between close particles
+        _createLiquidBridges(gridFill, centerPoints, gridWidth, gridHeight, random);
     
     // Render the grid to canvas
     _renderGridToCanvas(canvas, gridFill, size, gridWidth, gridHeight);
@@ -165,6 +168,100 @@ class GridPainter extends CustomPainter {
         // Keep the maximum percentage (for overlapping areas)
         if (fillPercentage > 0) {
           gridFill[gx][gy] = max(gridFill[gx][gy], fillPercentage);
+        }
+      }
+    }
+  }
+
+  void _createLiquidBridges(List<List<double>> gridFill, List<_CircleInfo> centerPoints, int gridWidth, int gridHeight, Random random) {
+    // Find close particles and create bridges between them
+    for (int i = 0; i < centerPoints.length; i++) {
+      for (int j = i + 1; j < centerPoints.length; j++) {
+        final particle1 = centerPoints[i];
+        final particle2 = centerPoints[j];
+        
+        // Calculate distance between particles
+        final dx = particle1.centerX - particle2.centerX;
+        final dy = particle1.centerY - particle2.centerY;
+        final distance = sqrt(dx * dx + dy * dy);
+        
+        // Create bridge if particles are close enough (within 1.8x the combined radius)
+        final combinedRadius = particle1.radius + particle2.radius;
+        final bridgeThreshold = combinedRadius * 1.8;
+        
+        if (distance < bridgeThreshold && distance > 0) {
+          // Create a liquid bridge between the particles
+          _createBridgeBetweenParticles(gridFill, particle1, particle2, gridWidth, gridHeight, random);
+        }
+      }
+    }
+  }
+
+  void _createBridgeBetweenParticles(List<List<double>> gridFill, _CircleInfo particle1, _CircleInfo particle2, int gridWidth, int gridHeight, Random random) {
+    // Calculate bridge properties
+    final dx = particle2.centerX - particle1.centerX;
+    final dy = particle2.centerY - particle1.centerY;
+    final distance = sqrt(dx * dx + dy * dy);
+    
+    // Bridge width varies with distance (closer = thicker bridge)
+    final maxBridgeWidth = min(particle1.radius, particle2.radius) * 1.2;
+    final distanceFactor = 1.0 - (distance / (particle1.radius + particle2.radius + 5));
+    final bridgeWidth = maxBridgeWidth * distanceFactor.clamp(0.5, 1.0);
+    
+    // Create bridge path with smooth curve for organic look
+    final steps = (distance * 4).round(); // More steps for smoother bridge
+    for (int step = 0; step <= steps; step++) {
+      final t = step / steps;
+      
+      // Very subtle curve using sine wave for smooth bridge shape
+      final curveOffset = sin(t * pi) * 1.2; // Smaller curve for smoother look
+      final perpX = -dy / distance; // Perpendicular vector
+      final perpY = dx / distance;
+      
+      // Bridge center point
+      final bridgeX = (particle1.centerX + t * dx + perpX * curveOffset).round();
+      final bridgeY = (particle1.centerY + t * dy + perpY * curveOffset).round();
+      
+      // Smooth bridge width: thick at particles, thin in middle
+      final widthFactor = 1.0 - (t - 0.5).abs() * 2; // 1.0 at ends, 0.0 at middle
+      final smoothWidthFactor = sin(widthFactor * pi / 2); // Smooth curve
+      final bridgeRadius = (bridgeWidth * smoothWidthFactor).round();
+      
+      if (bridgeRadius > 0) {
+        for (int gx = (bridgeX - bridgeRadius).clamp(0, gridWidth - 1); 
+             gx <= (bridgeX + bridgeRadius).clamp(0, gridWidth - 1); 
+             gx++) {
+          for (int gy = (bridgeY - bridgeRadius).clamp(0, gridHeight - 1); 
+               gy <= (bridgeY + bridgeRadius).clamp(0, gridHeight - 1); 
+               gy++) {
+            
+            final distFromCenter = sqrt((gx - bridgeX) * (gx - bridgeX) + (gy - bridgeY) * (gy - bridgeY));
+            
+            if (distFromCenter <= bridgeRadius) {
+              // Calculate distance to both particles to determine proximity to 100% fill
+              final distToParticle1 = sqrt((gx - particle1.centerX) * (gx - particle1.centerX) + (gy - particle1.centerY) * (gy - particle1.centerY));
+              final distToParticle2 = sqrt((gx - particle2.centerX) * (gx - particle2.centerX) + (gy - particle2.centerY) * (gy - particle2.centerY));
+              
+              // Find the closer particle
+              final minDistToParticle = min(distToParticle1, distToParticle2);
+              
+              // The closer to a 100% particle, the higher the fill percentage
+              // Right next to 100% particles: 100% fill
+              // At maximum bridge radius: 30% fill
+              double bridgeFill;
+              if (minDistToParticle <= min(particle1.radius, particle2.radius)) {
+                // 100% fill right next to 100% particles
+                bridgeFill = 1.0;
+              } else {
+                // Gradual transition from 100% to 30% based on distance
+                final proximityTo100Percent = (1.0 - (minDistToParticle / (bridgeRadius + particle1.radius + particle2.radius))).clamp(0.0, 1.0);
+                bridgeFill = (0.3 + proximityTo100Percent * 0.7).clamp(0.3, 1.0);
+              }
+              
+              // Blend with existing fill (take maximum)
+              gridFill[gx][gy] = max(gridFill[gx][gy], bridgeFill);
+            }
+          }
         }
       }
     }
