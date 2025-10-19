@@ -190,15 +190,101 @@ class GridPainter extends CustomPainter {
           // 0% fill (0.0) = 100% radius (circle)
           // Inverted relationship: lower percentage = more circular
           final radiusPercentage = 1.0 - fillPercentage;
-          final cornerRadius = min(shapeWidth, shapeHeight) / 2 * radiusPercentage;
+          var cornerRadius = min(shapeWidth, shapeHeight) / 2 * radiusPercentage;
           
-          canvas.drawRRect(
-            RRect.fromRectAndRadius(
+          // Special handling for 100% fill particles (normally square)
+          RRect shapeRRect;
+          
+          if (fillPercentage >= 0.99) {
+            // Check neighboring particles
+            final left = gx > 0 ? gridFill[gx - 1][gy] : 0.0;
+            final right = gx < gridWidth - 1 ? gridFill[gx + 1][gy] : 0.0;
+            final top = gy > 0 ? gridFill[gx][gy - 1] : 0.0;
+            final bottom = gy < gridHeight - 1 ? gridFill[gx][gy + 1] : 0.0;
+            
+            // Check if neighbors are non-100%
+            final hasLeftNon100 = left > 0 && left < 0.99;
+            final hasRightNon100 = right > 0 && right < 0.99;
+            final hasTopNon100 = top > 0 && top < 0.99;
+            final hasBottomNon100 = bottom > 0 && bottom < 0.99;
+            
+            // Count non-100% neighbors
+            final nonFullNeighbors = [hasLeftNon100, hasRightNon100, hasTopNon100, hasBottomNon100]
+                .where((has) => has).length;
+            
+            if (nonFullNeighbors >= 2) {
+              // Has 2+ non-100% neighbors: add corner radius only to corners touching them
+              final maxRadius = min(shapeWidth, shapeHeight) / 2;
+              final radiusAmount = maxRadius * 0.8; // 80% radius for affected corners (more round)
+              
+              // Check diagonal neighbors to determine if corner should be rounded
+              final topLeft = (gx > 0 && gy > 0) ? gridFill[gx - 1][gy - 1] : 0.0;
+              final topRight = (gx < gridWidth - 1 && gy > 0) ? gridFill[gx + 1][gy - 1] : 0.0;
+              final bottomLeft = (gx > 0 && gy < gridHeight - 1) ? gridFill[gx - 1][gy + 1] : 0.0;
+              final bottomRight = (gx < gridWidth - 1 && gy < gridHeight - 1) ? gridFill[gx + 1][gy + 1] : 0.0;
+              
+              // Check if diagonal neighbors are 100%
+              final hasTopLeft100 = topLeft >= 0.99;
+              final hasTopRight100 = topRight >= 0.99;
+              final hasBottomLeft100 = bottomLeft >= 0.99;
+              final hasBottomRight100 = bottomRight >= 0.99;
+              
+              // Determine which corners should be rounded based on neighboring non-100% particles
+              // A corner should ONLY be rounded if BOTH of its adjacent sides have non-100% particles
+              
+              // Top-left corner: BOTH top AND left must be non-100%
+              final topLeftRadius = (hasTopNon100 && hasLeftNon100) && !hasTopLeft100
+                  ? Radius.circular(radiusAmount) : Radius.zero;
+              
+              // Top-right corner: BOTH top AND right must be non-100%
+              final topRightRadius = (hasTopNon100 && hasRightNon100) && !hasTopRight100
+                  ? Radius.circular(radiusAmount) : Radius.zero;
+              
+              // Bottom-left corner: BOTH bottom AND left must be non-100%
+              final bottomLeftRadius = (hasBottomNon100 && hasLeftNon100) && !hasBottomLeft100
+                  ? Radius.circular(radiusAmount) : Radius.zero;
+              
+              // Bottom-right corner: BOTH bottom AND right must be non-100%
+              final bottomRightRadius = (hasBottomNon100 && hasRightNon100) && !hasBottomRight100
+                  ? Radius.circular(radiusAmount) : Radius.zero;
+              
+              shapeRRect = RRect.fromLTRBAndCorners(
+                shapeX, shapeY, shapeX + shapeWidth, shapeY + shapeHeight,
+                topLeft: topLeftRadius,
+                topRight: topRightRadius,
+                bottomLeft: bottomLeftRadius,
+                bottomRight: bottomRightRadius,
+              );
+            } else {
+              // All neighbors are 100% or no neighbors: stay square
+              shapeRRect = RRect.fromRectAndRadius(
+                Rect.fromLTWH(shapeX, shapeY, shapeWidth, shapeHeight),
+                Radius.zero,
+              );
+            }
+          } else {
+            // Add organic variation: for non-square shapes (radiusPercentage > 0),
+            // randomly reduce corner radius for some shapes to create varied forms
+            if (radiusPercentage > 0.05) {
+              // Use deterministic randomness based on position
+              final positionSeed = (gx * 1000 + gy).hashCode;
+              final localRandom = Random(positionSeed);
+              
+              // 50% chance to reduce the corner radius
+              if (localRandom.nextDouble() < 0.5) {
+                // Reduce radius by 50-90% (much more dramatic)
+                final reductionFactor = 0.1 + localRandom.nextDouble() * 0.4;
+                cornerRadius *= reductionFactor;
+              }
+            }
+            
+            shapeRRect = RRect.fromRectAndRadius(
               Rect.fromLTWH(shapeX, shapeY, shapeWidth, shapeHeight),
               Radius.circular(cornerRadius),
-            ),
-            whitePaint,
-          );
+            );
+          }
+          
+          canvas.drawRRect(shapeRRect, whitePaint);
         }
       }
     }
