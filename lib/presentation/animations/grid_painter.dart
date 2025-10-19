@@ -22,8 +22,8 @@ class GridPainter extends CustomPainter {
   void _drawPattern(Canvas canvas, Size size) {
     final random = Random(config.randomSeed);
     
-    // Calculate grid size based on screen size and cell size (7 pixels per cell)
-    const cellSize = 7.0;
+        // Calculate grid size based on screen size and cell size (5 pixels per cell)
+        const cellSize = 5.0;
     final gridWidth = (size.width / cellSize).ceil();
     final gridHeight = (size.height / cellSize).ceil();
     
@@ -116,6 +116,18 @@ class GridPainter extends CustomPainter {
         
         // Create liquid-like bridges between close particles
         _createLiquidBridges(gridFill, centerPoints, gridWidth, gridHeight, random);
+        
+        // Apply isolation rule to remove adjacent outside particles
+        _enforceIsolationRule(gridFill, gridWidth, gridHeight);
+        
+        // Fill gaps between close 100% particles
+        _fillGapsBetweenParticles(gridFill, gridWidth, gridHeight);
+        
+        // Convert outside particles adjacent to 100% particles to 100% particles
+        _convertAdjacentOutsideTo100Percent(gridFill, gridWidth, gridHeight);
+        
+        // Create diagonal bridges between close outside particles
+        _createDiagonalOutsideBridges(gridFill, gridWidth, gridHeight);
     
     // Render the grid to canvas
     _renderGridToCanvas(canvas, gridFill, size, gridWidth, gridHeight);
@@ -156,18 +168,246 @@ class GridPainter extends CustomPainter {
               // Inside the oval - 100% fill
               fillPercentage = 1.0;
             } else if (ellipticalDistance <= 2.0) {
-              // In the expansion area - gradient from 60% to 15%
-              final expansionDistance = ellipticalDistance - 1.0;
-              final maxExpansion = 1.0; // From 1.0 to 2.0
-              final normalizedDistance = expansionDistance / maxExpansion;
+              // In the expansion area - only keep diagonal particles in checkerboard pattern
+              // Check if this grid position should have an outside particle (diagonal pattern)
+              final shouldKeep = (gx % 2 == gy % 2); // Diagonal checkerboard pattern
               
-              // Linear gradient from 60% to 15%
-              fillPercentage = 0.6 - (normalizedDistance * 0.45); // 0.6 to 0.15
+              if (shouldKeep) {
+                // Gradient from 60% to 15% for kept particles
+                final expansionDistance = ellipticalDistance - 1.0;
+                final maxExpansion = 1.0; // From 1.0 to 2.0
+                final normalizedDistance = expansionDistance / maxExpansion;
+                
+                // Linear gradient from 80% to 25% (larger size range)
+                fillPercentage = 0.8 - (normalizedDistance * 0.55); // 0.8 to 0.25
+              } else {
+                // Skip this particle - no outside expansion here
+                fillPercentage = 0.0;
+              }
             }
         
         // Keep the maximum percentage (for overlapping areas)
         if (fillPercentage > 0) {
           gridFill[gx][gy] = max(gridFill[gx][gy], fillPercentage);
+        }
+      }
+    }
+  }
+
+  void _enforceIsolationRule(List<List<double>> gridFill, int gridWidth, int gridHeight) {
+    // Create a copy to avoid modifying while iterating
+    final originalFill = List.generate(gridWidth, (i) => List.generate(gridHeight, (j) => gridFill[i][j]));
+    
+    // Apply isolation rule: enforce diagonal checkerboard pattern for outside particles
+    for (int gx = 0; gx < gridWidth; gx++) {
+      for (int gy = 0; gy < gridHeight; gy++) {
+        final currentFill = originalFill[gx][gy];
+        
+        // Only process outside particles (non-100% fill)
+        if (currentFill > 0 && currentFill < 0.99) {
+          // Check if this position should have an outside particle according to checkerboard pattern
+          final shouldKeep = (gx % 2 == gy % 2); // Diagonal checkerboard pattern
+          
+          if (!shouldKeep) {
+            // Remove outside particles that don't follow the checkerboard pattern
+            gridFill[gx][gy] = 0.0;
+          }
+          // If shouldKeep is true, keep the outside particle (it's in correct checkerboard position)
+        }
+        // Always keep 100% fill particles regardless of position
+      }
+    }
+  }
+
+  void _fillGapsBetweenParticles(List<List<double>> gridFill, int gridWidth, int gridHeight) {
+    // Find gaps between 100% particles and fill them if they're small enough
+    for (int gx = 0; gx < gridWidth; gx++) {
+      for (int gy = 0; gy < gridHeight; gy++) {
+        final currentFill = gridFill[gx][gy];
+        
+        // Only process empty or low-fill positions
+        if (currentFill < 0.99) {
+          
+          // Check horizontal direction (left and right)
+          bool has100PercentLeft = false;
+          bool has100PercentRight = false;
+          int gapSizeHorizontal = 0;
+          
+          // Look left
+          for (int dx = 1; dx <= 4; dx++) { // Check up to 4 cells away
+            if (gx - dx >= 0) {
+              if (gridFill[gx - dx][gy] >= 0.99) {
+                has100PercentLeft = true;
+                gapSizeHorizontal = dx - 1; // Gap size is the distance minus 1
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+          
+          // Look right
+          for (int dx = 1; dx <= 4; dx++) { // Check up to 4 cells away
+            if (gx + dx < gridWidth) {
+              if (gridFill[gx + dx][gy] >= 0.99) {
+                has100PercentRight = true;
+                gapSizeHorizontal += dx - 1; // Add to gap size
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+          
+          // Check vertical direction (up and down)
+          bool has100PercentUp = false;
+          bool has100PercentDown = false;
+          int gapSizeVertical = 0;
+          
+          // Look up
+          for (int dy = 1; dy <= 4; dy++) { // Check up to 4 cells away
+            if (gy - dy >= 0) {
+              if (gridFill[gx][gy - dy] >= 0.99) {
+                has100PercentUp = true;
+                gapSizeVertical = dy - 1; // Gap size is the distance minus 1
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+          
+          // Look down
+          for (int dy = 1; dy <= 4; dy++) { // Check up to 4 cells away
+            if (gy + dy < gridHeight) {
+              if (gridFill[gx][gy + dy] >= 0.99) {
+                has100PercentDown = true;
+                gapSizeVertical += dy - 1; // Add to gap size
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+          
+          // Fill the gap if it's small enough (1-3 cells between 100% particles)
+          if ((has100PercentLeft && has100PercentRight && gapSizeHorizontal <= 2) ||
+              (has100PercentUp && has100PercentDown && gapSizeVertical <= 2)) {
+            // Fill gaps with 100% fill to create solid connections
+            gridFill[gx][gy] = 1.0;
+          }
+        }
+      }
+    }
+  }
+
+  void _convertAdjacentOutsideTo100Percent(List<List<double>> gridFill, int gridWidth, int gridHeight) {
+    // Create a copy to avoid modifying while iterating
+    final originalFill = List.generate(gridWidth, (i) => List.generate(gridHeight, (j) => gridFill[i][j]));
+    
+    // Convert outside particles that are adjacent to 100% particles to 100% particles
+    for (int gx = 0; gx < gridWidth; gx++) {
+      for (int gy = 0; gy < gridHeight; gy++) {
+        final currentFill = originalFill[gx][gy];
+        
+        // Only process outside particles (non-100% fill but > 0)
+        if (currentFill > 0 && currentFill < 0.99) {
+          bool hasAdjacent100Percent = false;
+          
+          // Check all 4 adjacent positions (up, down, left, right)
+          final adjacentPositions = [
+            (gx - 1, gy), (gx + 1, gy), (gx, gy - 1), (gx, gy + 1)
+          ];
+          
+          for (final (adjGx, adjGy) in adjacentPositions) {
+            if (adjGx >= 0 && adjGx < gridWidth && adjGy >= 0 && adjGy < gridHeight) {
+              final adjacentFill = originalFill[adjGx][adjGy];
+              if (adjacentFill >= 0.99) { // Adjacent 100% particle exists
+                hasAdjacent100Percent = true;
+                break;
+              }
+            }
+          }
+          
+          // Convert this outside particle to 100% if it has adjacent 100% particles
+          if (hasAdjacent100Percent) {
+            gridFill[gx][gy] = 1.0; // Convert to 100% particle
+          }
+        }
+      }
+    }
+  }
+
+  void _createDiagonalOutsideBridges(List<List<double>> gridFill, int gridWidth, int gridHeight) {
+    // Find outside particles and create diagonal bridges between close ones
+    final outsideParticles = <(int, int)>[];
+    
+    // Collect all outside particles
+    for (int gx = 0; gx < gridWidth; gx++) {
+      for (int gy = 0; gy < gridHeight; gy++) {
+        final fill = gridFill[gx][gy];
+        if (fill > 0 && fill < 0.99) { // Outside particle
+          outsideParticles.add((gx, gy));
+        }
+      }
+    }
+    
+    // Create diagonal bridges between close outside particles
+    for (int i = 0; i < outsideParticles.length; i++) {
+      for (int j = i + 1; j < outsideParticles.length; j++) {
+        final (x1, y1) = outsideParticles[i];
+        final (x2, y2) = outsideParticles[j];
+        
+        // Calculate distance between outside particles
+        final dx = x1 - x2;
+        final dy = y1 - y2;
+        final distance = sqrt(dx * dx + dy * dy);
+        
+        // Create bridge if particles are close enough (within 5 grid cells for longer reach)
+        const bridgeThreshold = 5.0;
+        
+        if (distance < bridgeThreshold && distance > 0) {
+          // Create a diagonal bridge between the outside particles
+          _createDiagonalBridgeBetweenOutsideParticles(gridFill, x1, y1, x2, y2, gridWidth, gridHeight);
+        }
+      }
+    }
+  }
+
+  void _createDiagonalBridgeBetweenOutsideParticles(List<List<double>> gridFill, int x1, int y1, int x2, int y2, int gridWidth, int gridHeight) {
+    // Calculate bridge properties
+    final dx = x2 - x1;
+    final dy = y2 - y1;
+    final distance = sqrt(dx * dx + dy * dy);
+    
+    // Create diagonal bridge path - only fill diagonal positions
+    final steps = (distance * 2).round();
+    for (int step = 0; step <= steps; step++) {
+      final t = step / steps;
+      
+      // Bridge center point
+      final bridgeX = (x1 + t * dx).round();
+      final bridgeY = (y1 + t * dy).round();
+      
+      // Only fill if the position is within bounds and follows diagonal pattern
+      if (bridgeX >= 0 && bridgeX < gridWidth && bridgeY >= 0 && bridgeY < gridHeight) {
+        // Check if this position should be filled according to diagonal pattern
+        final shouldFill = (bridgeX % 2 == bridgeY % 2); // Diagonal checkerboard pattern
+        
+        if (shouldFill) {
+          // Use the average fill of the two connected outside particles
+          final particle1Fill = gridFill[x1][y1];
+          final particle2Fill = gridFill[x2][y2];
+          final averageFill = (particle1Fill + particle2Fill) / 2;
+          
+          // Apply bridge fill with slight reduction for bridge effect
+          final bridgeFill = averageFill * 0.9; // 90% of average outside particle fill
+          
+          // Only apply if it increases the fill percentage
+          final existingFill = gridFill[bridgeX][bridgeY];
+          if (bridgeFill > existingFill) {
+            gridFill[bridgeX][bridgeY] = bridgeFill;
+          }
         }
       }
     }
@@ -259,9 +499,9 @@ class GridPainter extends CustomPainter {
                 // 100% fill in extended area around 100% particles
                 bridgeFill = 1.0;
               } else {
-                // Follow the same gradient as the outside expansion areas (60% to 15%)
+                // Follow the same gradient as the outside expansion areas (80% to 25%)
                 final proximityTo100Percent = (1.0 - (minDistToParticle / (bridgeRadius + particle1.radius + particle2.radius))).clamp(0.0, 1.0);
-                bridgeFill = (0.6 - proximityTo100Percent * 0.45).clamp(0.15, 0.6); // 60% to 15% fill
+                bridgeFill = (0.8 - proximityTo100Percent * 0.55).clamp(0.25, 0.8); // 80% to 25% fill
               }
               
               // Blend with existing fill (take maximum)
@@ -274,9 +514,9 @@ class GridPainter extends CustomPainter {
   }
 
   void _renderGridToCanvas(Canvas canvas, List<List<double>> gridFill, Size size, int gridWidth, int gridHeight) {
-    // Each grid cell = 7 pixels
-    final cellWidth = 7.0;
-    final cellHeight = 7.0;
+    // Each grid cell = 5 pixels
+    final cellWidth = 5.0;
+    final cellHeight = 5.0;
     
     final whitePaint = Paint()..color = config.lightColor;
     
