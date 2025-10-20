@@ -50,11 +50,27 @@ class ParticlePainter extends BasePainter {
           final shouldKeep = (gx % 2 == gy % 2);
           
           if (shouldKeep) {
+            // Check directional constraints for expansion
+            final horizontalDistance = dx.abs();
+            final verticalDistance = dy.abs();
+            
             // Gradient from base to minimum fill
             final expansionDistance = ellipticalDistance - 1.0;
             final maxExpansion = PainterConstants.expansionGradientMax;
             final normalizedDistance = expansionDistance / maxExpansion;
-            fillPercentage = PainterConstants.baseFillPercentage - (normalizedDistance * PainterConstants.fillGradientRange);
+            final baseFill = PainterConstants.baseFillPercentage - (normalizedDistance * PainterConstants.fillGradientRange);
+            
+            // Reduce horizontal expansion intensity
+            if (verticalDistance > horizontalDistance) {
+              // Vertical expansion - full intensity
+              fillPercentage = baseFill;
+            } else if (horizontalDistance <= 3) {
+              // Close horizontal expansion - reduced intensity (50% of normal)
+              fillPercentage = baseFill * 0.5;
+            } else {
+              // Far horizontal expansion - very reduced intensity (25% of normal)
+              fillPercentage = baseFill * 0.25;
+            }
           }
         }
 

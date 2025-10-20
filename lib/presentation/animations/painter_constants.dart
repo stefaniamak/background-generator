@@ -5,9 +5,9 @@ class PainterConstants {
   static const double ovalFactor = 0.7; // Make particles 70% as wide as they are tall
   
   // Particle Generation
-  static const int minGroups = 12;
-  static const int maxGroups = 18;
-  static const double groupColumnsReduction = 0.15; // Even fewer columns for more vertical spread
+  static const int minGroups = 15; // Increased for better coverage
+  static const int maxGroups = 22; // Increased for better coverage
+  static const double groupColumnsReduction = 0.25; // Increased for more horizontal spread
   
   static const int minParticlesPerGroup = 4;
   static const int maxParticlesPerGroup = 10;
@@ -15,11 +15,11 @@ class PainterConstants {
   static const int minParticleRadius = 5; // Increased from 4
   static const int maxParticleRadius = 12; // Increased from 9
   
-  // Distance and Spread Configuration - More compact and vertical
-  static const double minDistancePercentage = 0.03; // Reduced from 0.05 - closer particles
-  static const double maxDistancePercentage = 0.12; // Reduced from 0.20 - more compact groups
-  static const double horizontalSpreadBase = 0.03; // Reduced from 0.06 - less horizontal spread
-  static const double horizontalVariationFactor = 0.02; // Reduced from 0.05 - more vertical
+  // Distance and Spread Configuration - More even distribution
+  static const double minDistancePercentage = 0.04; // Slightly closer within groups
+  static const double maxDistancePercentage = 0.12; // Reduce spread within groups
+  static const double horizontalSpreadBase = 0.08; // Increased for better horizontal coverage
+  static const double horizontalVariationFactor = 0.06; // Increased for more variation
   
   // Particle Expansion - Reduced outside radius
   static const double expansionRadiusMultiplier = 1.9; // Reduced from 2.2 - smaller outside radius
@@ -47,25 +47,25 @@ class PainterConstants {
   static const double veryFarDistance = 6.0;
   
   // Bridge Configuration - Selective connectivity
-  static const double bridgeThresholdMultiplier = 2.1; // Increased - more selective bridging
+  static const double bridgeThresholdMultiplier = 1.6; // Lower - even more bridges
   static const double bridgeVerticalBias = 2.8; // Increased - stronger vertical preference
   static const double bridgeCurveOffset = 1.4; // Increased - more curved connections
   static const double bridgeStepsMultiplier = 4.0; // Increased - smoother connections
-  static const double bridgeWidthMultiplier = 1.4; // Increased - wider bridges when they connect
-  static const double bridgeExtendedRadiusMultiplier = 1.6; // Increased - stronger connections
+  static const double bridgeWidthMultiplier = 1.6; // Increased - wider bridges when they connect
+  static const double bridgeExtendedRadiusMultiplier = 2.0; // Larger neighborhood for connecting
   
   // Bridge Fill Configuration - Varied connectivity
   static const double bridgeProximityFill = 0.95; // Very solid when close
-  static const double bridgeMinFill = 0.15; // Lower minimum for weak connections
-  static const double bridgeMaxFill = 0.85; // Higher maximum for strong connections
-  static const double bridgeFillRange = 0.7; // Larger range for more variation
+  static const double bridgeMinFill = 0.25; // Increased minimum for more visible bridges
+  static const double bridgeMaxFill = 0.90; // Increased maximum for stronger connections
+  static const double bridgeFillRange = 0.65; // Slightly reduced range for more consistent bridges
   
   // Bridge Randomness - For selective connectivity
-  static const double bridgeRandomnessFactor = 0.3; // 30% randomness in bridge creation
-  static const double bridgeDistanceVariation = 0.2; // 20% variation in distance thresholds
+  static const double bridgeRandomnessFactor = 0.2; // 20% randomness (more deterministic bridges)
+  static const double bridgeDistanceVariation = 0.25; // 25% variation (connect a few more)
   
   // Diagonal Bridge Configuration - More selective
-  static const double diagonalBridgeThreshold = 8.0; // Increased - more selective diagonal bridging
+  static const double diagonalBridgeThreshold = 6.0; // Lower - allow more diagonal bridges
   static const double diagonalBridgeStepsMultiplier = 2.0; // Increased - smoother when they connect
   static const double diagonalBridgeFillReduction = 0.6; // Reduced - weaker diagonal connections
   
@@ -81,6 +81,6 @@ class PainterConstants {
   
   // Color Configuration (from BackgroundConfig)
   static const int darkColorValue = 0xFF000000; // Black background
-  static const int lightColorValue = 0xFF282828; // Very dark grey pattern
+  static const int lightColorValue = 0xFF242424; // Dark grey pattern
   static const int defaultRandomSeed = 42; // Fixed seed for consistent pattern
 }
