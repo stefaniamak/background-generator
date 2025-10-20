@@ -12,8 +12,16 @@ class GroupingPainter extends BasePainter {
     final (gridWidth, gridHeight) = calculateGridDimensions(screenSize);
     final centerPoints = <ParticleCenter>[];
 
-    // Create fewer groups with varying sizes for organic distribution
-    final numGroups = PainterConstants.minGroups + random.nextInt(PainterConstants.maxGroups - PainterConstants.minGroups + 1);
+    // Scale the number of groups by screen grid area
+    final totalArea = gridWidth * gridHeight;
+    final targetGroups = (totalArea / PainterConstants.cellsPerGroupTarget).clamp(
+      PainterConstants.minGroups.toDouble(),
+      PainterConstants.maxGroups.toDouble(),
+    );
+    final baseGroups = targetGroups.round();
+    // Add small randomness (+/- 10%) for variation
+    final jitter = (baseGroups * 0.1).round().clamp(0, 3);
+    final numGroups = max(PainterConstants.minGroups, min(PainterConstants.maxGroups, baseGroups + (random.nextBool() ? jitter : -jitter)));
 
     // Calculate grid layout for very vertical distribution
     final cols = max(1, (sqrt(numGroups) * PainterConstants.groupColumnsReduction).ceil()); // Reduced columns
@@ -33,8 +41,15 @@ class GroupingPainter extends BasePainter {
       final groupStartX = (col * cellWidth + random.nextDouble() * cellWidth).round().clamp(0, gridWidth - 1);
       final groupStartY = (row * cellHeight + random.nextDouble() * cellHeight).round().clamp(0, gridHeight - 1);
 
-      // Random number of particles in this group (increased density)
-      final particlesInGroup = PainterConstants.minParticlesPerGroup + random.nextInt(PainterConstants.maxParticlesPerGroup - PainterConstants.minParticlesPerGroup + 1);
+      // Stronger scaling: use power factor for larger growth on big screens
+      final rawScale = sqrt(totalArea / PainterConstants.particlesReferenceArea);
+      final areaScale = pow(rawScale, 1.25).toDouble()
+          .clamp(PainterConstants.particlesScaleMin, PainterConstants.particlesScaleMax);
+      final minParticlesScaled = (PainterConstants.minParticlesPerGroup * areaScale).clamp(2.0, 999.0).round();
+      final maxParticlesScaled = (PainterConstants.maxParticlesPerGroup * areaScale).clamp(minParticlesScaled.toDouble(), 999.0).round();
+
+      final particlesInGroup = minParticlesScaled +
+          random.nextInt(max(1, maxParticlesScaled - minParticlesScaled + 1));
 
       // Calculate distance range based on screen diagonal
       final minDistance = screenDiagonal * PainterConstants.minDistancePercentage;

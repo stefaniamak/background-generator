@@ -15,6 +15,14 @@ class PainterConstants {
   
   static const int minParticleRadius = 5; // Increased from 4
   static const int maxParticleRadius = 12; // Increased from 9
+
+  // Screen-scaling configuration
+  // Target grid-cell area per group. Actual groups ~= totalGridArea / cellsPerGroupTarget
+  static const int cellsPerGroupTarget = 2200; // lower -> more groups on larger screens
+  // Reference area to scale particles per group. Scale = sqrt(totalArea / referenceArea)
+  static const int particlesReferenceArea = 35000;
+  static const double particlesScaleMin = 1.0;  // lower bound multiplier for tiny screens
+  static const double particlesScaleMax = 2.5;  // upper bound multiplier for very large screens
   
   // Distance and Spread Configuration - More even distribution
   static const double minDistancePercentage = 0.04; // Slightly closer within groups
