@@ -1,12 +1,13 @@
 /// Core constants for all painters
 class PainterConstants {
   // Grid and Cell Configuration
-  static const double cellSize = 4.0;
-  static const double ovalFactor = 0.7; // Make particles 70% as wide as they are tall
+  static const double cellWidth = 5.0; // grid cell width in pixels
+  static const double cellHeight = 3.0; // grid cell height in pixels
+  static const double ovalFactor = 0.7; // Make particles 120% as wide as they are tall
   
   // Particle Generation
-  static const int minGroups = 15; // Increased for better coverage
-  static const int maxGroups = 22; // Increased for better coverage
+  static const int minGroups = 10; // Fewer groups for sparser layout
+  static const int maxGroups = 14; // Fewer groups for sparser layout
   static const double groupColumnsReduction = 0.25; // Increased for more horizontal spread
   
   static const int minParticlesPerGroup = 4;
@@ -82,5 +83,5 @@ class PainterConstants {
   // Color Configuration (from BackgroundConfig)
   static const int darkColorValue = 0xFF000000; // Black background
   static const int lightColorValue = 0xFF242424; // Dark grey pattern
-  static const int defaultRandomSeed = 42; // Fixed seed for consistent pattern
+  static const int defaultRandomSeed = 43; // Changed seed to force regeneration
 }

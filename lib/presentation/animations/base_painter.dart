@@ -11,12 +11,13 @@ abstract class BasePainter {
   BasePainter({required this.config}) : random = Random(config.randomSeed);
 
   /// Get the current cell size for the grid
-  double get cellSize => PainterConstants.cellSize;
+  double get cellWidth => PainterConstants.cellWidth;
+  double get cellHeight => PainterConstants.cellHeight;
 
   /// Calculate grid dimensions based on screen size
   (int width, int height) calculateGridDimensions(Size screenSize) {
-    final gridWidth = (screenSize.width / cellSize).ceil();
-    final gridHeight = (screenSize.height / cellSize).ceil();
+    final gridWidth = (screenSize.width / cellWidth).ceil();
+    final gridHeight = (screenSize.height / cellHeight).ceil();
     return (gridWidth, gridHeight);
   }
 }

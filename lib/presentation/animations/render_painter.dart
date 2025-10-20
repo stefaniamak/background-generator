@@ -15,8 +15,8 @@ class RenderPainter extends BasePainter {
     int gridWidth,
     int gridHeight,
   ) {
-    final cellWidth = cellSize;
-    final cellHeight = cellSize;
+    final cellWidth = this.cellWidth;
+    final cellHeight = this.cellHeight;
     final whitePaint = Paint()..color = config.lightColor;
 
     for (int gx = 0; gx < gridWidth; gx++) {

@@ -20,6 +20,7 @@ class MainGridPainter extends CustomPainter {
   int? _cachedGridWidth;
   int? _cachedGridHeight;
   Size? _cachedSize;
+  BackgroundConfig? _cachedConfig;
 
   MainGridPainter({required this.config}) {
     _particlePainter = ParticlePainter(config: config);
@@ -39,7 +40,8 @@ class MainGridPainter extends CustomPainter {
 
     // Check if we need to regenerate the pattern
     final needsRegeneration = _cachedGridFill == null || 
-                               _cachedSize != size;
+                               _cachedSize != size ||
+                               _cachedConfig != config;
     
     if (needsRegeneration) {
       _generateAndCachePattern(size);
@@ -65,6 +67,7 @@ class MainGridPainter extends CustomPainter {
     _cachedGridWidth = gridWidth;
     _cachedGridHeight = gridHeight;
     _cachedSize = size;
+    _cachedConfig = config;
   }
 
   void _drawPatternToGrid(List<List<double>> gridFill, Size size, int gridWidth, int gridHeight) {
