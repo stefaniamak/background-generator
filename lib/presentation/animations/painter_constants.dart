@@ -3,7 +3,7 @@ class PainterConstants {
   // Grid and Cell Configuration
   static const double cellWidth = 5.0; // grid cell width in pixels
   static const double cellHeight = 3.0; // grid cell height in pixels
-  static const double ovalFactor = 0.7; // Make particles 120% as wide as they are tall
+  static const double ovalFactor = 0.5; // Make particles 120% as wide as they are tall
   
   // Particle Generation
   static const int minGroups = 10; // Fewer groups for sparser layout
@@ -48,25 +48,25 @@ class PainterConstants {
   static const double veryFarDistance = 6.0;
   
   // Bridge Configuration - Selective connectivity
-  static const double bridgeThresholdMultiplier = 1.6; // Lower - even more bridges
-  static const double bridgeVerticalBias = 2.8; // Increased - stronger vertical preference
+  static const double bridgeThresholdMultiplier = 1.1; // Very low - significantly more bridges
+  static const double bridgeVerticalBias = 2.4; // Less bias to allow cross links
   static const double bridgeCurveOffset = 1.4; // Increased - more curved connections
   static const double bridgeStepsMultiplier = 4.0; // Increased - smoother connections
-  static const double bridgeWidthMultiplier = 1.6; // Increased - wider bridges when they connect
-  static const double bridgeExtendedRadiusMultiplier = 2.0; // Larger neighborhood for connecting
+  static const double bridgeWidthMultiplier = 1.9; // Wider bridges when they connect
+  static const double bridgeExtendedRadiusMultiplier = 2.6; // Much larger neighborhood for connecting
   
   // Bridge Fill Configuration - Varied connectivity
-  static const double bridgeProximityFill = 0.95; // Very solid when close
-  static const double bridgeMinFill = 0.25; // Increased minimum for more visible bridges
-  static const double bridgeMaxFill = 0.90; // Increased maximum for stronger connections
-  static const double bridgeFillRange = 0.65; // Slightly reduced range for more consistent bridges
+  static const double bridgeProximityFill = 0.97; // Very solid when close
+  static const double bridgeMinFill = 0.30; // Higher minimum for visible bridges
+  static const double bridgeMaxFill = 0.92; // Stronger connections
+  static const double bridgeFillRange = 0.70; // Slightly wider range
   
   // Bridge Randomness - For selective connectivity
-  static const double bridgeRandomnessFactor = 0.2; // 20% randomness (more deterministic bridges)
-  static const double bridgeDistanceVariation = 0.25; // 25% variation (connect a few more)
+  static const double bridgeRandomnessFactor = 0.35; // 35% randomness (consider more candidates)
+  static const double bridgeDistanceVariation = 0.35; // 35% variation (connect more cases)
   
   // Diagonal Bridge Configuration - More selective
-  static const double diagonalBridgeThreshold = 6.0; // Lower - allow more diagonal bridges
+  static const double diagonalBridgeThreshold = 3.5; // Very low - allow many diagonal bridges
   static const double diagonalBridgeStepsMultiplier = 2.0; // Increased - smoother when they connect
   static const double diagonalBridgeFillReduction = 0.6; // Reduced - weaker diagonal connections
   
