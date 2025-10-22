@@ -51,8 +51,8 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
         // Generate pattern in isolate
         await _isolateManager!.compute(
           jsonEncode(BackgroundPatternInput(
-            width: AppConstants.defaultWidth,
-            height: AppConstants.defaultHeight,
+            width: event.width,
+            height: event.height,
             darkColorValue: newConfig.darkColor.value,
             lightColorValue: newConfig.lightColor.value,
             randomSeed: newConfig.randomSeed,

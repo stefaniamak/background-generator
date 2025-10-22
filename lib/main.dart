@@ -24,7 +24,12 @@ class _BackgroundGeneratorAppState extends State<BackgroundGeneratorApp> {
     _backgroundBloc = BackgroundBloc();
     // Trigger initial pattern generation after the bloc is fully initialized
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _backgroundBloc.add(RegeneratePattern());
+      // Get screen dimensions
+      final screenSize = MediaQuery.of(context).size;
+      _backgroundBloc.add(RegeneratePattern(
+        width: screenSize.width,
+        height: screenSize.height,
+      ));
     });
   }
 

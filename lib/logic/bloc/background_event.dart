@@ -17,7 +17,18 @@ class UpdateBackgroundConfig extends BackgroundEvent {
   List<Object?> get props => [config];
 }
 
-class RegeneratePattern extends BackgroundEvent {}
+class RegeneratePattern extends BackgroundEvent {
+  final double width;
+  final double height;
+  
+  const RegeneratePattern({
+    required this.width,
+    required this.height,
+  });
+
+  @override
+  List<Object?> get props => [width, height];
+}
 
 class UpdateColors extends BackgroundEvent {
   final Color darkColor;

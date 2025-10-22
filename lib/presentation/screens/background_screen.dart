@@ -40,7 +40,11 @@ class BackgroundScreen extends StatelessWidget {
         builder: (context, state) {
           return FloatingActionButton(
             onPressed: state.isRefreshing ? null : () {
-              context.read<BackgroundBloc>().add(RegeneratePattern());
+              final screenSize = MediaQuery.of(context).size;
+              context.read<BackgroundBloc>().add(RegeneratePattern(
+                width: screenSize.width,
+                height: screenSize.height,
+              ));
             },
             backgroundColor: state.isRefreshing ? Colors.grey : Colors.white,
             child: state.isRefreshing 
