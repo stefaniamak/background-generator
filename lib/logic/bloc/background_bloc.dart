@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:isolate_manager/isolate_manager.dart';
 import '../../data/models/background_config.dart';
+import '../../utils/app_constants.dart';
 import '../isolate/background_pattern_isolate.dart';
 import 'background_event.dart';
 import 'background_state.dart';
@@ -23,7 +24,7 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
       
       try {
         // Generate new random seed to create new pattern
-        final newSeed = DateTime.now().millisecondsSinceEpoch % 1000000;
+        final newSeed = DateTime.now().millisecondsSinceEpoch % AppConstants.randomSeedRange;
         final newConfig = state.config.copyWith(randomSeed: newSeed);
         
         // Emit new config immediately to show the seed change
@@ -33,16 +34,16 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
         if (_isolateManager == null) {
           _isolateManager = IsolateManager<dynamic, dynamic>.createCustom(
             backgroundPatternWorker,
-            workerName: 'backgroundPatternWorker',
-            concurrent: 1, // Only one pattern generation at a time
+            workerName: AppConstants.isolateWorkerName,
+            concurrent: AppConstants.isolateConcurrency,
           );
         }
         
         // Generate pattern in isolate
         await _isolateManager!.compute(
           jsonEncode(BackgroundPatternInput(
-            width: 800.0, // Default size, will be updated by the painter
-            height: 600.0,
+            width: AppConstants.defaultWidth,
+            height: AppConstants.defaultHeight,
             darkColorValue: newConfig.darkColor.value,
             lightColorValue: newConfig.lightColor.value,
             randomSeed: newConfig.randomSeed,
@@ -67,7 +68,7 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
         
       } catch (e) {
         // Handle errors gracefully
-        print('Error generating pattern: $e');
+        print('${AppConstants.errorGeneratingPattern}$e');
       } finally {
         // Reset refreshing state
         emit(state.copyWith(isRefreshing: false));

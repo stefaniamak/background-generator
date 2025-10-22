@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:isolate_manager/isolate_manager.dart';
 import '../../data/models/background_config.dart';
+import '../../utils/app_constants.dart';
 import '../../logic/isolate/background_pattern_isolate.dart';
 import 'render_painter.dart';
 
@@ -58,8 +59,8 @@ class MainGridPainter extends CustomPainter {
       if (_isolateManager == null) {
         _isolateManager = IsolateManager<dynamic, dynamic>.createCustom(
           backgroundPatternWorker,
-          workerName: 'backgroundPatternWorker',
-          concurrent: 1,
+          workerName: AppConstants.isolateWorkerName,
+          concurrent: AppConstants.isolateConcurrency,
         );
       }
       
@@ -94,7 +95,7 @@ class MainGridPainter extends CustomPainter {
         },
       );
     } catch (e) {
-      print('Error generating pattern: $e');
+      print('${AppConstants.errorGeneratingPattern}$e');
       _isGenerating = false;
     }
   }

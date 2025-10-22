@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:isolate_manager/isolate_manager.dart';
+import '../../utils/app_constants.dart';
 
 /// Input data structure for the isolate computation
 class BackgroundPatternInput {
@@ -193,8 +194,8 @@ void backgroundPatternWorker(dynamic params) {
         
         // Send progress update
         controller.sendResult(jsonEncode({
-          'progress': 10,
-          'message': 'Starting pattern generation...'
+          'progress': AppConstants.progressStart,
+          'message': AppConstants.messageStartingGeneration
         }));
         
         // Calculate grid dimensions
@@ -202,8 +203,8 @@ void backgroundPatternWorker(dynamic params) {
         
         // Send progress update
         controller.sendResult(jsonEncode({
-          'progress': 20,
-          'message': 'Grid dimensions calculated: ${gridWidth}x${gridHeight}'
+          'progress': AppConstants.progressGridCalculated,
+          'message': '${AppConstants.messageGridDimensionsCalculated}: ${gridWidth}x${gridHeight}'
         }));
         
         // Create array to store fill percentages for each grid cell
@@ -211,8 +212,8 @@ void backgroundPatternWorker(dynamic params) {
         
         // Send progress update
         controller.sendResult(jsonEncode({
-          'progress': 30,
-          'message': 'Grid initialized, generating particle groups...'
+          'progress': AppConstants.progressGridInitialized,
+          'message': AppConstants.messageGridInitialized
         }));
         
         // Generate the pattern using all the steps
@@ -228,7 +229,7 @@ void backgroundPatternWorker(dynamic params) {
         
         controller.sendResult(jsonEncode({
           'result': output.toJson(),
-          'message': 'Pattern generation complete!'
+          'message': AppConstants.successPatternComplete
         }));
         
         return 'completed'; // Indicates completion
@@ -265,16 +266,16 @@ void _drawPatternToGrid(
 ) {
   // Step 1: Generate particle groups
   controller.sendResult(jsonEncode({
-    'progress': 40,
-    'message': 'Generating particle groups...'
+    'progress': AppConstants.progressGeneratingGroups,
+    'message': AppConstants.messageGeneratingGroups
   }));
   
   final centerPoints = _generateParticleGroups(input, gridWidth, gridHeight);
   
   // Step 2: Fill the grid with particles
   controller.sendResult(jsonEncode({
-    'progress': 50,
-    'message': 'Filling particles in grid...'
+    'progress': AppConstants.progressFillingParticles,
+    'message': AppConstants.messageFillingParticles
   }));
   
   for (final circle in centerPoints) {
@@ -283,56 +284,56 @@ void _drawPatternToGrid(
 
   // Step 3: Create liquid-like bridges between close particles
   controller.sendResult(jsonEncode({
-    'progress': 60,
-    'message': 'Creating liquid bridges...'
+    'progress': AppConstants.progressCreatingBridges,
+    'message': AppConstants.messageCreatingBridges
   }));
   
   _createLiquidBridges(gridFill, centerPoints, gridWidth, gridHeight);
 
   // Step 4: Apply isolation rule to remove adjacent outside particles
   controller.sendResult(jsonEncode({
-    'progress': 70,
-    'message': 'Applying isolation rules...'
+    'progress': AppConstants.progressApplyingIsolation,
+    'message': AppConstants.messageApplyingIsolation
   }));
   
   _enforceIsolationRule(gridFill, gridWidth, gridHeight);
 
   // Step 5: Fill gaps between close 100% particles
   controller.sendResult(jsonEncode({
-    'progress': 75,
-    'message': 'Filling gaps between particles...'
+    'progress': AppConstants.progressFillingGaps,
+    'message': AppConstants.messageFillingGaps
   }));
   
   _fillGapsBetweenParticles(gridFill, gridWidth, gridHeight);
 
   // Step 6: Convert outside particles adjacent to 100% particles to 100% particles
   controller.sendResult(jsonEncode({
-    'progress': 80,
-    'message': 'Converting adjacent particles...'
+    'progress': AppConstants.progressConvertingAdjacent,
+    'message': AppConstants.messageConvertingAdjacent
   }));
   
   _convertAdjacentOutsideTo100Percent(gridFill, gridWidth, gridHeight);
 
   // Step 7: Upgrade particles that are completely surrounded by 100% particles
   controller.sendResult(jsonEncode({
-    'progress': 85,
-    'message': 'Upgrading surrounded particles...'
+    'progress': AppConstants.progressUpgradingSurrounded,
+    'message': AppConstants.messageUpgradingSurrounded
   }));
   
   _upgradeSurroundedParticles(gridFill, gridWidth, gridHeight);
 
   // Step 8: Create diagonal bridges between close outside particles
   controller.sendResult(jsonEncode({
-    'progress': 90,
-    'message': 'Creating diagonal bridges...'
+    'progress': AppConstants.progressCreatingDiagonal,
+    'message': AppConstants.messageCreatingDiagonal
   }));
   
   _createDiagonalOutsideBridges(gridFill, gridWidth, gridHeight);
 
   // Step 9: Apply dramatic size differences to outside particles (LAST STEP)
   controller.sendResult(jsonEncode({
-    'progress': 95,
-    'message': 'Applying distance-based sizing...'
+    'progress': AppConstants.progressApplyingSizing,
+    'message': AppConstants.messageApplyingSizing
   }));
   
   _applyDistanceBasedSizing(gridFill, gridWidth, gridHeight);
@@ -412,10 +413,10 @@ List<ParticleCenter> _generateParticleGroups(BackgroundPatternInput input, int g
       final centerX = (groupStartX + (cos(angle) * distance)).round().clamp(0, gridWidth - 1);
       final centerY = (groupStartY + (sin(angle) * distance)).round().clamp(0, gridHeight - 1);
 
-      // Radius decreases with distance from first particle
-      final minRadius = 2 + ((PainterConstants.minParticleRadius - 2) * (1.0 - normalizedDistance)).round();
-      final maxRadius = PainterConstants.minParticleRadius + ((PainterConstants.maxParticleRadius - PainterConstants.minParticleRadius) * (1.0 - normalizedDistance)).round();
-      final radius = minRadius + random.nextInt((maxRadius - minRadius + 1).clamp(1, 100));
+    // Radius decreases with distance from first particle
+    final minRadius = AppConstants.minRadius + ((PainterConstants.minParticleRadius - AppConstants.minRadius) * (1.0 - normalizedDistance)).round();
+    final maxRadius = PainterConstants.minParticleRadius + ((PainterConstants.maxParticleRadius - PainterConstants.minParticleRadius) * (1.0 - normalizedDistance)).round();
+    final radius = minRadius + random.nextInt((maxRadius - minRadius + 1).clamp(1, AppConstants.maxRadius));
 
       centerPoints.add(ParticleCenter(
         centerX: centerX,
@@ -764,7 +765,7 @@ void _convertAdjacentOutsideTo100Percent(List<List<double>> gridFill, int gridWi
 void _upgradeSurroundedParticles(List<List<double>> gridFill, int gridWidth, int gridHeight) {
   bool hasChanges = true;
   int iterations = 0;
-  const maxIterations = 10; // Prevent infinite loops
+  const maxIterations = AppConstants.maxIterations; // Prevent infinite loops
 
   // Keep upgrading until no more changes can be made
   while (hasChanges && iterations < maxIterations) {
