@@ -13,8 +13,8 @@ void main() {
     // Verify that the refresh button is present
     expect(find.byIcon(Icons.refresh), findsOneWidget);
 
-    // Verify that we have two FloatingActionButtons (settings and refresh)
-    expect(find.byType(FloatingActionButton), findsNWidgets(AppConstants.expectedFloatingActionButtonCount));
+    // Verify that we have two FloatingActionButtons (edit and refresh)
+    expect(find.byType(FloatingActionButton), findsNWidgets(2));
   });
 
   testWidgets('Refresh button regenerates pattern', (WidgetTester tester) async {
@@ -31,6 +31,6 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     
     // Verify that the app is still running (no errors)
-    expect(find.byType(FloatingActionButton), findsNWidgets(AppConstants.expectedFloatingActionButtonCount));
+    expect(find.byType(FloatingActionButton), findsNWidgets(2));
   });
 }
