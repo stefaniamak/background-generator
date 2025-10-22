@@ -1,18 +1,13 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:isolate_manager/isolate_manager.dart';
 import '../../data/models/background_config.dart';
-import 'particle_painter.dart';
-import 'grouping_painter.dart';
-import 'bridge_painter.dart';
-import 'pattern_painter.dart';
+import '../../logic/isolate/background_pattern_isolate.dart';
 import 'render_painter.dart';
 
 /// Main painter that orchestrates all specialized painters
 class MainGridPainter extends CustomPainter {
   final BackgroundConfig config;
-  late final ParticlePainter _particlePainter;
-  late final GroupingPainter _groupingPainter;
-  late final BridgePainter _bridgePainter;
-  late final PatternPainter _patternPainter;
   late final RenderPainter _renderPainter;
   
   // Cache the generated pattern to avoid recalculating on every paint call
@@ -21,12 +16,12 @@ class MainGridPainter extends CustomPainter {
   int? _cachedGridHeight;
   Size? _cachedSize;
   BackgroundConfig? _cachedConfig;
+  
+  // Isolate manager for pattern generation
+  IsolateManager<dynamic, dynamic>? _isolateManager;
+  bool _isGenerating = false;
 
   MainGridPainter({required this.config}) {
-    _particlePainter = ParticlePainter(config: config);
-    _groupingPainter = GroupingPainter(config: config);
-    _bridgePainter = BridgePainter(config: config);
-    _patternPainter = PatternPainter(config: config);
     _renderPainter = RenderPainter(config: config);
   }
 
@@ -43,7 +38,7 @@ class MainGridPainter extends CustomPainter {
                                _cachedSize != size ||
                                _cachedConfig != config;
     
-    if (needsRegeneration) {
+    if (needsRegeneration && !_isGenerating) {
       _generateAndCachePattern(size);
     }
     
@@ -53,53 +48,58 @@ class MainGridPainter extends CustomPainter {
     }
   }
   
-  void _generateAndCachePattern(Size size) {
-    final (gridWidth, gridHeight) = _particlePainter.calculateGridDimensions(size);
-
-    // Create array to store fill percentages for each grid cell
-    final gridFill = List.generate(gridWidth, (_) => List.generate(gridHeight, (_) => 0.0));
-
-    // Generate the pattern using all the steps
-    _drawPatternToGrid(gridFill, size, gridWidth, gridHeight);
+  void _generateAndCachePattern(Size size) async {
+    if (_isGenerating) return;
     
-    // Cache the results
-    _cachedGridFill = gridFill;
-    _cachedGridWidth = gridWidth;
-    _cachedGridHeight = gridHeight;
-    _cachedSize = size;
-    _cachedConfig = config;
-  }
-
-  void _drawPatternToGrid(List<List<double>> gridFill, Size size, int gridWidth, int gridHeight) {
-    // Step 1: Generate particle groups
-    final centerPoints = _groupingPainter.generateParticleGroups(size);
-
-    // Step 2: Fill the grid with particles
-    for (final circle in centerPoints) {
-      _particlePainter.fillParticleInGrid(gridFill, circle, centerPoints, gridWidth, gridHeight);
+    _isGenerating = true;
+    
+    try {
+      // Initialize isolate manager if not already done
+      if (_isolateManager == null) {
+        _isolateManager = IsolateManager<dynamic, dynamic>.createCustom(
+          backgroundPatternWorker,
+          workerName: 'backgroundPatternWorker',
+          concurrent: 1,
+        );
+      }
+      
+      // Generate pattern in isolate
+      await _isolateManager!.compute(
+        jsonEncode(BackgroundPatternInput(
+          width: size.width,
+          height: size.height,
+          darkColorValue: config.darkColor.value,
+          lightColorValue: config.lightColor.value,
+          randomSeed: config.randomSeed,
+        ).toJson()),
+        callback: (dynamic value) {
+          final Map<String, dynamic> data = jsonDecode(value);
+          
+          if (data.containsKey('result')) {
+            // Final result received
+            final result = BackgroundPatternOutput.fromJson(data['result']);
+            
+            // Cache the results
+            _cachedGridFill = result.gridFill;
+            _cachedGridWidth = result.gridWidth;
+            _cachedGridHeight = result.gridHeight;
+            _cachedSize = size;
+            _cachedConfig = config;
+            
+            _isGenerating = false;
+            return true; // This is the final result
+          }
+          
+          return false; // Not the final result
+        },
+      );
+    } catch (e) {
+      print('Error generating pattern: $e');
+      _isGenerating = false;
     }
-
-    // Step 3: Create liquid-like bridges between close particles
-    _bridgePainter.createLiquidBridges(gridFill, centerPoints, gridWidth, gridHeight);
-
-    // Step 4: Apply isolation rule to remove adjacent outside particles
-    _patternPainter.enforceIsolationRule(gridFill, gridWidth, gridHeight);
-
-    // Step 5: Fill gaps between close 100% particles
-    _patternPainter.fillGapsBetweenParticles(gridFill, gridWidth, gridHeight);
-
-    // Step 6: Convert outside particles adjacent to 100% particles to 100% particles
-    _patternPainter.convertAdjacentOutsideTo100Percent(gridFill, gridWidth, gridHeight);
-
-    // Step 7: Upgrade particles that are completely surrounded by 100% particles
-    _patternPainter.upgradeSurroundedParticles(gridFill, gridWidth, gridHeight);
-
-    // Step 8: Create diagonal bridges between close outside particles
-    _bridgePainter.createDiagonalOutsideBridges(gridFill, gridWidth, gridHeight);
-
-    // Step 9: Apply dramatic size differences to outside particles (LAST STEP)
-    _particlePainter.applyDistanceBasedSizing(gridFill, gridWidth, gridHeight);
   }
+
+  // Pattern generation is now handled by the isolate
 
   @override
   bool shouldRepaint(covariant MainGridPainter oldDelegate) {

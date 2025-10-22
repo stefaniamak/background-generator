@@ -12,8 +12,8 @@ void main() {
     // Verify that the refresh button is present
     expect(find.byIcon(Icons.refresh), findsOneWidget);
 
-    // Verify that we have a FloatingActionButton
-    expect(find.byType(FloatingActionButton), findsOneWidget);
+    // Verify that we have two FloatingActionButtons (settings and refresh)
+    expect(find.byType(FloatingActionButton), findsNWidgets(2));
   });
 
   testWidgets('Refresh button regenerates pattern', (WidgetTester tester) async {
@@ -22,9 +22,14 @@ void main() {
 
     // Tap the refresh button
     await tester.tap(find.byIcon(Icons.refresh));
-    await tester.pumpAndSettle();
+    
+    // Wait a bit for the button state to change
+    await tester.pump(const Duration(milliseconds: 100));
 
+    // Verify that the refresh button is now showing loading state
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    
     // Verify that the app is still running (no errors)
-    expect(find.byType(FloatingActionButton), findsOneWidget);
+    expect(find.byType(FloatingActionButton), findsNWidgets(2));
   });
 }
