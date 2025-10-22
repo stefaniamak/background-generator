@@ -46,11 +46,11 @@ class _BackgroundScreenState extends State<BackgroundScreen> {
               child: FloatingActionButton(
                 heroTag: "edit_button",
                 onPressed: _toggleSidebar,
-                backgroundColor: Colors.white,
-                mini: true,
+                backgroundColor: Colors.white, 
                 child: Icon(
                   _isSidebarVisible ? Icons.close : Icons.edit,
                   color: Colors.black,
+                  size: 26,
                 ),
               ),
             ),
@@ -83,7 +83,7 @@ class _BackgroundScreenState extends State<BackgroundScreen> {
                             valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
                           ),
                         )
-                      : const Icon(Icons.refresh, color: Colors.black),
+                      : const Icon(Icons.refresh, color: Colors.black, size: 26),
                   );
                 },
               ),

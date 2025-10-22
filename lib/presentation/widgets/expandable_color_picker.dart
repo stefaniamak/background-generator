@@ -125,8 +125,7 @@ class _ExpandableColorPickerState extends State<ExpandableColorPicker>
                   // Edit icon
                   Icon(
                     widget.isExpanded ? Icons.keyboard_arrow_up : Icons.edit,
-                    color: Colors.white54,
-                    size: 20,
+                    color: Colors.white54, 
                   ),
                 ],
               ),
