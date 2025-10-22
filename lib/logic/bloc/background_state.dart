@@ -1,22 +1,27 @@
 import 'package:equatable/equatable.dart';
 import '../../data/models/background_config.dart';
+import '../isolate/background_pattern_isolate.dart';
 
 class BackgroundState extends Equatable {
   final BackgroundConfig config;
   final bool isRefreshing;
+  final BackgroundPatternOutput? patternData;
 
   const BackgroundState({
     required this.config,
     this.isRefreshing = false,
+    this.patternData,
   });
 
   BackgroundState copyWith({
     BackgroundConfig? config,
     bool? isRefreshing,
+    BackgroundPatternOutput? patternData,
   }) {
     return BackgroundState(
       config: config ?? this.config,
       isRefreshing: isRefreshing ?? this.isRefreshing,
+      patternData: patternData ?? this.patternData,
     );
   }
 
@@ -24,5 +29,5 @@ class BackgroundState extends Equatable {
       BackgroundState(config: BackgroundConfig.initial(), isRefreshing: false);
 
   @override
-  List<Object?> get props => [config, isRefreshing];
+  List<Object?> get props => [config, isRefreshing, patternData];
 }

@@ -10,11 +10,17 @@ class GridBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<BackgroundBloc, BackgroundState>(
-      buildWhen: (previous, current) => previous.config != current.config,
+      buildWhen: (previous, current) => 
+        previous.config.darkColor != current.config.darkColor ||
+        previous.config.lightColor != current.config.lightColor ||
+        previous.patternData != current.patternData,
       builder: (context, state) {
         return SizedBox.expand(
           child: CustomPaint(
-            painter: MainGridPainter(config: state.config),
+            painter: MainGridPainter(
+              config: state.config,
+              patternData: state.patternData,
+            ),
           ),
         );
       },

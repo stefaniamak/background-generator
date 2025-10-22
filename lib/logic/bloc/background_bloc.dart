@@ -12,7 +12,16 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
 
   BackgroundBloc() : super(BackgroundState.initial()) {
     on<UpdateBackgroundConfig>((event, emit) {
-      emit(state.copyWith(config: event.config));
+      // Check if only colors changed (not random seed)
+      final onlyColorsChanged = event.config.randomSeed == state.config.randomSeed;
+      
+      if (onlyColorsChanged) {
+        // Only update config, don't regenerate pattern
+        emit(state.copyWith(config: event.config));
+      } else {
+        // Random seed changed, need to regenerate pattern
+        emit(state.copyWith(config: event.config, patternData: null));
+      }
     });
 
     on<RegeneratePattern>((event, emit) async {
@@ -58,7 +67,9 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
             
             if (data.containsKey('result')) {
               // Final result received
-              // The pattern is now ready for rendering
+              final result = BackgroundPatternOutput.fromJson(data['result']);
+              // Update state with new pattern data
+              emit(state.copyWith(patternData: result));
               return true; // This is the final result
             }
             
@@ -80,6 +91,7 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
         darkColor: event.darkColor,
         lightColor: event.lightColor,
       );
+      // Only update colors, don't regenerate pattern
       emit(state.copyWith(config: newConfig));
     });
 
@@ -88,6 +100,7 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
         darkColor: BackgroundConfig.initial().darkColor,
         lightColor: BackgroundConfig.initial().lightColor,
       );
+      // Only reset colors, don't regenerate pattern
       emit(state.copyWith(config: defaultConfig));
     });
   }
