@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../data/models/background_config.dart';
 import 'background_event.dart';
 import 'background_state.dart';
 
@@ -24,6 +25,22 @@ class BackgroundBloc extends Bloc<BackgroundEvent, BackgroundState> {
       
       // Emit new config and reset refreshing state
       emit(state.copyWith(config: newConfig, isRefreshing: false));
+    });
+
+    on<UpdateColors>((event, emit) {
+      final newConfig = state.config.copyWith(
+        darkColor: event.darkColor,
+        lightColor: event.lightColor,
+      );
+      emit(state.copyWith(config: newConfig));
+    });
+
+    on<ResetToDefaults>((event, emit) {
+      final defaultConfig = state.config.copyWith(
+        darkColor: BackgroundConfig.initial().darkColor,
+        lightColor: BackgroundConfig.initial().lightColor,
+      );
+      emit(state.copyWith(config: defaultConfig));
     });
   }
 }

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import '../../data/models/background_config.dart';
 
 abstract class BackgroundEvent extends Equatable {
@@ -17,3 +18,18 @@ class UpdateBackgroundConfig extends BackgroundEvent {
 }
 
 class RegeneratePattern extends BackgroundEvent {}
+
+class UpdateColors extends BackgroundEvent {
+  final Color darkColor;
+  final Color lightColor;
+  
+  const UpdateColors({
+    required this.darkColor,
+    required this.lightColor,
+  });
+
+  @override
+  List<Object?> get props => [darkColor, lightColor];
+}
+
+class ResetToDefaults extends BackgroundEvent {}
