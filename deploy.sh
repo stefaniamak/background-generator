@@ -30,56 +30,49 @@ else
     exit 1
 fi
 
-# Step 2: Run dart generate and build on main branch first
-echo "🎯 Step 2: Running dart generate on main branch..."
+# Step 2: Run dart generate and build on main branch
+echo "🎯 Step 2: Running dart generate..."
 dart run isolate_manager:generate
 
-echo "🏗️  Step 3: Building web on main branch..."
+echo "🏗️  Step 3: Building web..."
 flutter build web
 
-# Step 3: Commit version increment to main
-echo "📦 Committing version increment to main..."
-# Make sure we only commit pubspec.yaml (not docs folder if it exists)
-rm -rf docs/ 2>/dev/null || true
-git add pubspec.yaml
-git commit -m "Increment build number to $new_version"
-
-# Step 4: Switch to gh-pages and merge main
+# Step 3: Switch to gh-pages and merge main
 echo "🌿 Step 4: Switching to gh-pages branch..."
 git checkout gh-pages || git checkout -b gh-pages
 
 echo "🔀 Step 5: Merging main into gh-pages..."
 git merge main -m "Merge main into gh-pages"
 
-# Step 4: Update docs folder with the built files
-echo "📂 Step 6: Updating docs folder..."
+# Step 6: Update docs folder with the built files
+echo "📂 Step 6: Copying build/web to docs folder..."
 # Remove ALL contents from docs folder (including hidden files)
 echo "   Removing all old files from docs/..."
-rm -rf docs/*
+rm -rf docs/* 2>/dev/null || true
 find docs -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
 
 # Ensure docs folder exists
 mkdir -p docs
 
 # Copy all files from build/web to docs
-echo "   Copying new files from build/web to docs/..."
+echo "   Copying files from build/web to docs/..."
 cp -r build/web/. docs/
 
 echo "   ✅ Docs folder updated successfully"
 
-# Step 7: Stage and commit changes on gh-pages
-echo "📦 Step 7: Committing changes to gh-pages..."
+# Step 7: Stage all changes and commit in one go
+echo "📦 Step 7: Committing all changes (version and docs) to gh-pages..."
 git add .
-git commit -m "Update docs: Build $new_version" || echo "   No changes to commit"
+git commit -m "Deploy build $new_version" || echo "   No changes to commit"
 
 # Step 8: Push to gh-pages
 echo "⬆️  Step 8: Pushing to gh-pages..."
 git push origin gh-pages
 
-# Step 9: Switch back to main branch
+# Step 9: Switch back to main
 echo "🔄 Step 9: Switching back to main branch..."
 git checkout main
 
 echo "✅ Deployment complete! Version $new_version has been deployed to gh-pages."
-echo "   Main branch has been updated with new version number."
+echo "   All changes committed in a single commit on gh-pages branch."
 
