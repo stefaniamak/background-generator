@@ -30,24 +30,27 @@ else
     exit 1
 fi
 
-# Step 2: Commit version increment to main
-echo "📦 Step 2: Committing version increment to main..."
+# Step 2: Run dart generate and build on main branch first
+echo "🎯 Step 2: Running dart generate on main..."
+dart run isolate_manager:generate
+
+echo "🏗️  Step 3: Building web on main branch..."
+# Clean old build to ensure fresh build
+rm -rf build/web
+flutter build web
+
+# Step 3: Commit version increment to main
+echo "📦 Step 4: Committing version increment to main..."
+rm -rf docs/ 2>/dev/null || true
 git add pubspec.yaml
 git commit -m "Increment build number to $new_version"
 
-# Step 3: Switch to gh-pages and merge main
-echo "🌿 Step 3: Switching to gh-pages branch..."
+# Step 4: Switch to gh-pages and merge main
+echo "🌿 Step 5: Switching to gh-pages branch..."
 git checkout gh-pages || git checkout -b gh-pages
 
-echo "🔀 Step 4: Merging main into gh-pages..."
+echo "🔀 Step 6: Merging main into gh-pages..."
 git merge main -m "Merge main into gh-pages"
-
-# Step 5: Run dart generate and build on gh-pages branch
-echo "🎯 Step 5: Running dart generate..."
-dart run isolate_manager:generate
-
-echo "🏗️  Step 6: Building web on gh-pages branch..."
-flutter build web
 
 # Step 7: Update docs folder with the built files
 echo "📂 Step 7: Copying build/web to docs folder..."
