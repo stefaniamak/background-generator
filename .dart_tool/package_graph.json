@@ -5,7 +5,7 @@
   "packages": [
     {
       "name": "background_generator",
-      "version": "1.0.0+6",
+      "version": "1.0.0+3",
       "dependencies": [
         "cupertino_icons",
         "equatable",
