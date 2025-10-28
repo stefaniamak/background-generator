@@ -47,6 +47,8 @@ git commit -m "Increment build number to $new_version"
 
 # Step 4: Switch to gh-pages and merge main
 echo "🌿 Step 5: Switching to gh-pages branch..."
+# Clean any temporary files that might block branch switch
+git checkout .dart_tool/package_graph.json .DS_Store 2>/dev/null || true
 git checkout gh-pages || git checkout -b gh-pages
 
 echo "🔀 Step 6: Merging main into gh-pages..."
