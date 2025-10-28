@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'inline_color_picker.dart';
 
-class ExpandableColorPicker extends StatefulWidget {
+class ExpandableColorPicker extends StatelessWidget {
   final String title;
   final Color color;
   final bool isExpanded;
@@ -18,46 +17,6 @@ class ExpandableColorPicker extends StatefulWidget {
     required this.onColorChanged,
   });
 
-  @override
-  State<ExpandableColorPicker> createState() => _ExpandableColorPickerState();
-}
-
-class _ExpandableColorPickerState extends State<ExpandableColorPicker>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _expandAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
-      vsync: this,
-    );
-    _expandAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
-  }
-
-  @override
-  void didUpdateWidget(ExpandableColorPicker oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isExpanded != oldWidget.isExpanded) {
-      if (widget.isExpanded) {
-        _animationController.forward();
-      } else {
-        _animationController.reverse();
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
   String _getColorHex(Color color) {
     return '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
   }
@@ -69,15 +28,16 @@ class _ExpandableColorPickerState extends State<ExpandableColorPicker>
         color: const Color(0xFF242424),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: widget.isExpanded ? Colors.white54 : Colors.white24,
+          color: isExpanded ? Colors.white54 : Colors.white24,
           width: 1,
         ),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Header row
           InkWell(
-            onTap: widget.onToggle,
+            onTap: onToggle,
             borderRadius: BorderRadius.circular(12),
             child: Container(
               padding: const EdgeInsets.all(16),
@@ -88,7 +48,7 @@ class _ExpandableColorPickerState extends State<ExpandableColorPicker>
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: widget.color,
+                      color: color,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: Colors.white24, width: 1),
                     ),
@@ -102,7 +62,7 @@ class _ExpandableColorPickerState extends State<ExpandableColorPicker>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.title,
+                          title,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -111,7 +71,7 @@ class _ExpandableColorPickerState extends State<ExpandableColorPicker>
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _getColorHex(widget.color),
+                          _getColorHex(color),
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.white70,
@@ -124,7 +84,7 @@ class _ExpandableColorPickerState extends State<ExpandableColorPicker>
                   
                   // Edit icon
                   Icon(
-                    widget.isExpanded ? Icons.keyboard_arrow_up : Icons.edit,
+                    isExpanded ? Icons.keyboard_arrow_up : Icons.edit,
                     color: Colors.white54, 
                   ),
                 ],
@@ -133,15 +93,19 @@ class _ExpandableColorPickerState extends State<ExpandableColorPicker>
           ),
           
           // Expandable content
-          SizeTransition(
-            sizeFactor: _expandAnimation,
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: InlineColorPicker(
-                color: widget.color,
-                onColorChanged: widget.onColorChanged,
-              ),
-            ),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            height: isExpanded ? 300 : 0,
+            child: isExpanded
+                ? Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: InlineColorPicker(
+                      color: color,
+                      onColorChanged: onColorChanged,
+                    ),
+                  )
+                : const SizedBox.shrink(),
           ),
         ],
       ),

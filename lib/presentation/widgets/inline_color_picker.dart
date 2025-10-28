@@ -16,35 +16,14 @@ class InlineColorPicker extends StatefulWidget {
 }
 
 class _InlineColorPickerState extends State<InlineColorPicker> {
-  late Color _currentColor;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentColor = widget.color;
-  }
-
-  @override
-  void didUpdateWidget(InlineColorPicker oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.color != oldWidget.color) {
-      _currentColor = widget.color;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         // Color picker with sliders and hex input (like original popup)
         ColorPicker(
-          pickerColor: _currentColor,
-          onColorChanged: (Color color) {
-            setState(() {
-              _currentColor = color;
-            });
-            widget.onColorChanged(color);
-          },
+          pickerColor: widget.color,
+          onColorChanged: widget.onColorChanged,
           pickerAreaHeightPercent: 0.8,
           enableAlpha: false,
           displayThumbColor: true,
