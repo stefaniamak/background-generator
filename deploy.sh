@@ -45,13 +45,19 @@ flutter build web
 
 # Step 5: Clear docs folder and copy build/web to docs
 echo "📂 Step 5: Updating docs folder..."
-# Remove all contents from docs folder
-rm -rf docs/* docs/.DS_Store 2>/dev/null || true
+# Remove ALL contents from docs folder (including hidden files)
+echo "   Removing all old files from docs/..."
+# Use find to remove all files and directories including hidden ones
+find docs -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
+
+# Ensure docs folder exists
+mkdir -p docs
 
 # Copy all files from build/web to docs
+echo "   Copying new files from build/web to docs/..."
 cp -r build/web/. docs/
 
-echo "   Copied build/web/* to docs/"
+echo "   ✅ Docs folder updated successfully"
 
 # Step 6: Stage and commit changes
 echo "📦 Step 6: Committing changes..."
