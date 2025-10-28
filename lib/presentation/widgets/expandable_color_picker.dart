@@ -93,19 +93,20 @@ class ExpandableColorPicker extends StatelessWidget {
           ),
           
           // Expandable content
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            height: isExpanded ? 300 : 0,
-            child: isExpanded
-                ? Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: InlineColorPicker(
-                      color: color,
-                      onColorChanged: onColorChanged,
-                    ),
-                  )
-                : const SizedBox.shrink(),
+          ClipRect(
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: isExpanded
+                  ? Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: InlineColorPicker(
+                        color: color,
+                        onColorChanged: onColorChanged,
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
           ),
         ],
       ),

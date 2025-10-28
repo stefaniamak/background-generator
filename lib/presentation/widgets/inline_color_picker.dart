@@ -18,20 +18,15 @@ class InlineColorPicker extends StatefulWidget {
 class _InlineColorPickerState extends State<InlineColorPicker> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Color picker with sliders and hex input (like original popup)
-        ColorPicker(
-          pickerColor: widget.color,
-          onColorChanged: widget.onColorChanged,
-          pickerAreaHeightPercent: 0.8,
-          enableAlpha: false,
-          displayThumbColor: true,
-          paletteType: PaletteType.hsv,
-          labelTypes: const [],
-          pickerAreaBorderRadius: BorderRadius.circular(8),
-        ),
-      ],
+    return ColorPicker(
+      pickerColor: widget.color,
+      onColorChanged: widget.onColorChanged,
+      pickerAreaHeightPercent: 0.8,
+      enableAlpha: false,
+      displayThumbColor: true,
+      paletteType: PaletteType.hsv,
+      labelTypes: const [],
+      pickerAreaBorderRadius: BorderRadius.circular(8),
     );
   }
 }
