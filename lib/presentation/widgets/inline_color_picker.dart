@@ -21,12 +21,13 @@ class _InlineColorPickerState extends State<InlineColorPicker> {
     return ColorPicker(
       pickerColor: widget.color,
       onColorChanged: widget.onColorChanged,
-      pickerAreaHeightPercent: 0.8,
+      pickerAreaHeightPercent: 0.9,
       enableAlpha: false,
       displayThumbColor: true,
       paletteType: PaletteType.hsv,
       labelTypes: const [],
       pickerAreaBorderRadius: BorderRadius.circular(8),
+      portraitOnly: true,
     );
   }
 }
