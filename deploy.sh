@@ -52,7 +52,14 @@ git checkout .dart_tool/package_graph.json .DS_Store 2>/dev/null || true
 git checkout gh-pages || git checkout -b gh-pages
 
 echo "🔀 Step 6: Merging main into gh-pages..."
-git merge main -m "Merge main into gh-pages"
+# Use theirs strategy for .DS_Store and .dart_tool files to avoid conflicts
+git merge main -m "Merge main into gh-pages" -X theirs || {
+    echo "   Merge conflict detected, accepting theirs and continuing..."
+    git checkout --theirs .DS_Store .dart_tool/package_graph.json 2>/dev/null || true
+    git checkout --ours docs/ 2>/dev/null || true
+    git add .
+    git commit -m "Merge main into gh-pages (resolved conflicts)" || true
+}
 
 # Step 7: Update docs folder with the built files
 echo "📂 Step 7: Copying build/web to docs folder..."
