@@ -27,6 +27,7 @@ class _InlineColorPickerState extends State<InlineColorPicker> {
       paletteType: PaletteType.hsv,
       labelTypes: const [],
       pickerAreaBorderRadius: BorderRadius.circular(8),
+      portraitOnly: true,
     );
   }
 }
