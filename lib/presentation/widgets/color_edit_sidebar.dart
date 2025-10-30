@@ -30,14 +30,23 @@ class _ColorEditSidebarState extends State<ColorEditSidebar> {
         child: BlocBuilder<BackgroundBloc, BackgroundState>(
           builder: (context, state) {
             final baseColor = Colors.black;
+            final screenWidth = MediaQuery.of(context).size.width;
+            final buttonWidth = 56.0; // Button width
+            final buttonPadding = 16.0; // Button right padding
+            final sidebarLeftPadding = 16.0; // Sidebar left padding
+            final extraPadding = 16.0; // Extra padding for spacing
+            final maxAvailableWidth = screenWidth - sidebarLeftPadding - buttonWidth - buttonPadding - extraPadding;
+            final sidebarWidth = min(max(screenWidth * 0.3, 350.0), maxAvailableWidth);
+            
             return Container(
-              width: max(MediaQuery.of(context).size.width * 0.3, 350),
+              width: sidebarWidth.toDouble(),
               decoration: BoxDecoration(
                 color: baseColor.withValues(alpha: 0.5),
                 border: const Border(
                   right: BorderSide(color: Colors.white24, width: 1),
                 ),
               ),
+              clipBehavior: Clip.hardEdge,
               child: GestureDetector(
                 onTap: () {
                   // Prevent clicks inside sidebar from closing it
