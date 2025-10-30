@@ -54,11 +54,15 @@ class _ColorEditSidebarState extends State<ColorEditSidebar> {
                     ),
                   ),
                   child: Row(
-                    children: [
-                      const Icon(Icons.palette, color: Colors.white, size: 24),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'Color Editor',
+                    children: const [
+                      Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Edit',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -75,7 +79,22 @@ class _ColorEditSidebarState extends State<ColorEditSidebar> {
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Colors subtitle
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 12),
+                        child: Text(
+                          'Colors',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white70,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
                       // Dark Color Picker
                       ExpandableColorPicker(
                         title: 'Background Color',
