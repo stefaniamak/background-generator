@@ -36,6 +36,7 @@ class _BackgroundScreenState extends State<BackgroundScreen> {
     return Scaffold(
       backgroundColor: Colors.black,
       bottomNavigationBar: const AppFooterBar(),
+      extendBody: true,
       body: Stack(
         children: [
           const GridBackground(),
