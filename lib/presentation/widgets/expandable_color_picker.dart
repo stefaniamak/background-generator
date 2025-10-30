@@ -104,7 +104,7 @@ class ExpandableColorPicker extends StatelessWidget {
               curve: Curves.easeInOut,
               child: isExpanded
                   ? Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: InlineColorPicker(
                         color: color,
                         onColorChanged: onColorChanged,
