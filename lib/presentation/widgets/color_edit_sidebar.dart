@@ -145,19 +145,20 @@ class _ColorEditSidebarState extends State<ColorEditSidebar> {
                             child: BackdropFilter(
                               filter: ui.ImageFilter.blur(sigmaX: 2, sigmaY: 2),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withValues(alpha: 0.75),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
                               children: const [
                                 Text(
                                   "↺ ",
                                   style: TextStyle(
                                     color: Colors.black,
-                                    fontSize: 18,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -165,7 +166,7 @@ class _ColorEditSidebarState extends State<ColorEditSidebar> {
                                   "Reset to Defaults",
                                   style: TextStyle(
                                     color: Colors.black,
-                                    fontSize: 16,
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
