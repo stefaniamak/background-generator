@@ -54,32 +54,30 @@ class _ColorEditSidebarState extends State<ColorEditSidebar> {
                 child: Column(
             children: [
               // Header with SafeArea to avoid status bar overlap
-              SafeArea(
-                child: Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: Colors.white24, width: 1),
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: const BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: Colors.white24, width: 1),
+                  ),
+                ),
+                child: Row(
+                  children: const [
+                    Icon(
+                      Icons.edit,
+                      color: Colors.white,
+                      size: 24,
                     ),
-                  ),
-                  child: Row(
-                    children: const [
-                      Icon(
-                        Icons.edit,
+                    SizedBox(width: 8),
+                    Text(
+                      'Edit',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                         color: Colors.white,
-                        size: 24,
                       ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Edit',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               
