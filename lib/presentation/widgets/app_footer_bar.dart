@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,9 +34,29 @@ class AppFooterBar extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  const Text(
-                    'Made by Stefania Mak',
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        const TextSpan(
+                          text: 'Made by ',
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                        ),
+                        TextSpan(
+                          text: 'Stefania Mak',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                            decoration: TextDecoration.underline,
+                            decorationColor: Colors.white70,
+                          ),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () async {
+                              final uri = Uri.parse('https://linktr.ee/stefania.makrygiannaki');
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            },
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(width: 8),
                   const Text(
