@@ -5,6 +5,7 @@ import '../../logic/bloc/background_event.dart';
 import '../../logic/bloc/background_state.dart';
 import '../widgets/grid_background.dart';
 import '../widgets/color_edit_sidebar.dart';
+import '../widgets/app_footer_bar.dart';
 
 class BackgroundScreen extends StatefulWidget {
   const BackgroundScreen({super.key});
@@ -34,6 +35,7 @@ class _BackgroundScreenState extends State<BackgroundScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      bottomNavigationBar: const AppFooterBar(),
       body: Stack(
         children: [
           const GridBackground(),

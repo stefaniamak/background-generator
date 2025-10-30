@@ -24,6 +24,9 @@ dependencies:
   flutter_colorpicker: ^1.1.0
   
   isolate_manager: ^6.1.2
+  url_launcher: ^6.3.0
+  font_awesome_flutter: ^10.7.0
+  flutter_svg: ^2.0.10+1
 
 dev_dependencies:
   flutter_test:
@@ -38,6 +41,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/app_icon.png
+    - assets/icons/
 
 flutter_launcher_icons:
   android: true
