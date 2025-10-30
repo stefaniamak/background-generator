@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../logic/bloc/background_bloc.dart';
 import '../../logic/bloc/background_event.dart';
@@ -130,7 +131,8 @@ class _ColorEditSidebarState extends State<ColorEditSidebar> {
                       // Reset to Defaults Button
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton.icon(
+                        child: CupertinoButton(
+                          padding: EdgeInsets.zero,
                           onPressed: () {
                             context.read<BackgroundBloc>().add(ResetToDefaults());
                             setState(() {
@@ -138,14 +140,26 @@ class _ColorEditSidebarState extends State<ColorEditSidebar> {
                               _isLightColorExpanded = false;
                             });
                           },
-                          icon: const Icon(Icons.restore),
-                          label: const Text("Reset to Defaults"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.black,
+                          child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(Icons.restore, color: Colors.black, size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  "Reset to Defaults",
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),

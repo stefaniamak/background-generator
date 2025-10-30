@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../logic/bloc/background_bloc.dart';
 import '../../logic/bloc/background_event.dart';
@@ -40,14 +41,21 @@ class _BackgroundScreenState extends State<BackgroundScreen> {
                 top: 16,
                 right: 16,
                 child: SafeArea(
-                  child: FloatingActionButton(
-                    heroTag: "edit_button",
+                  child: CupertinoButton(
+                    padding: EdgeInsets.zero,
                     onPressed: _toggleSidebar,
-                    backgroundColor: Colors.white,
-                    child: Icon(
-                      _isSidebarVisible ? Icons.close : Icons.edit,
-                      color: Colors.black,
-                      size: 26,
+                    child: Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        _isSidebarVisible ? Icons.close : Icons.edit,
+                        color: Colors.black,
+                        size: 26,
+                      ),
                     ),
                   ),
                 ),
@@ -61,8 +69,8 @@ class _BackgroundScreenState extends State<BackgroundScreen> {
                   child: BlocBuilder<BackgroundBloc, BackgroundState>(
                     buildWhen: (previous, current) => previous.isRefreshing != current.isRefreshing,
                     builder: (context, state) {
-                      return FloatingActionButton(
-                        heroTag: "refresh_button",
+                      return CupertinoButton(
+                        padding: EdgeInsets.zero,
                         onPressed: state.isRefreshing ? null : () {
                           final screenSize = MediaQuery.of(context).size;
                           context.read<BackgroundBloc>().add(RegeneratePattern(
@@ -70,17 +78,24 @@ class _BackgroundScreenState extends State<BackgroundScreen> {
                             height: screenSize.height,
                           ));
                         },
-                        backgroundColor: state.isRefreshing ? Colors.grey : Colors.white,
-                        child: state.isRefreshing 
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                              ),
-                            )
-                          : const Icon(Icons.refresh, color: Colors.black, size: 26),
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: state.isRefreshing ? Colors.grey : Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: state.isRefreshing 
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                                ),
+                              )
+                            : const Icon(Icons.refresh, color: Colors.black, size: 26),
+                        ),
                       );
                     },
                   ),

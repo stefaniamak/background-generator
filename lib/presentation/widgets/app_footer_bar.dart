@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -42,18 +43,19 @@ class AppFooterBar extends StatelessWidget {
                     style: TextStyle(color: Colors.white24, fontSize: 12),
                   ),
                   const SizedBox(width: 8),
-                  IconButton(
-                    tooltip: 'Open on GitHub',
-                    icon: SvgPicture.asset(
+                  CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    minSize: 0,
+                    onPressed: () async {
+                      final uri = Uri.parse('https://github.com/stefaniamak/background-generator');
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                    },
+                    child: SvgPicture.asset(
                       'assets/icons/github.svg',
                       width: 18,
                       height: 18,
                       colorFilter: const ColorFilter.mode(Colors.white70, BlendMode.srcIn),
                     ),
-                    onPressed: () async {
-                      final uri = Uri.parse('https://github.com/stefaniamak/background-generator');
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
-                    },
                   ),
                 ],
               ),
