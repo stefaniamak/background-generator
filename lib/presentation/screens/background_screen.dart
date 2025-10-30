@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,6 +18,29 @@ class BackgroundScreen extends StatefulWidget {
 
 class _BackgroundScreenState extends State<BackgroundScreen> {
   bool _isSidebarVisible = false;
+  final GlobalKey _footerKey = GlobalKey();
+  double _footerHeight = 50; // Default fallback
+
+  @override
+  void initState() {
+    super.initState();
+    // Measure footer height after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _measureFooterHeight();
+    });
+  }
+
+  void _measureFooterHeight() {
+    final RenderBox? renderBox = _footerKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox != null) {
+      final height = renderBox.size.height;
+      if (height != _footerHeight) {
+        setState(() {
+          _footerHeight = height;
+        });
+      }
+    }
+  }
 
   void _toggleSidebar() {
     setState(() {
@@ -26,11 +50,16 @@ class _BackgroundScreenState extends State<BackgroundScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Measure footer height after each build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _measureFooterHeight();
+    });
+    
     return Stack(
       children: [
         Scaffold(
           backgroundColor: Colors.black,
-          bottomNavigationBar: const AppFooterBar(),
+          bottomNavigationBar: AppFooterBar(key: _footerKey),
           extendBody: true,
           body: Stack(
             children: [
@@ -44,17 +73,23 @@ class _BackgroundScreenState extends State<BackgroundScreen> {
                   child: CupertinoButton(
                     padding: EdgeInsets.zero,
                     onPressed: _toggleSidebar,
-                    child: Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        _isSidebarVisible ? Icons.close : Icons.edit,
-                        color: Colors.black,
-                        size: 26,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: BackdropFilter(
+                        filter: ui.ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.75),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            _isSidebarVisible ? Icons.close : Icons.edit,
+                            color: Colors.black,
+                            size: 26,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -78,23 +113,29 @@ class _BackgroundScreenState extends State<BackgroundScreen> {
                             height: screenSize.height,
                           ));
                         },
-                        child: Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: state.isRefreshing ? Colors.grey : Colors.white,
-                            borderRadius: BorderRadius.circular(8),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: BackdropFilter(
+                            filter: ui.ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                            child: Container(
+                              width: 56,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: (state.isRefreshing ? Colors.grey : Colors.white).withValues(alpha: 0.75),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: state.isRefreshing 
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                                    ),
+                                  )
+                                : const Icon(Icons.refresh, color: Colors.black, size: 26),
+                            ),
                           ),
-                          child: state.isRefreshing 
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                                ),
-                              )
-                            : const Icon(Icons.refresh, color: Colors.black, size: 26),
                         ),
                       );
                     },
@@ -110,7 +151,7 @@ class _BackgroundScreenState extends State<BackgroundScreen> {
         Positioned(
           top: 16 + MediaQuery.of(context).padding.top,
           left: 16, // Same padding as buttons (16px from right)
-          bottom: 16 + 60, // Above bottom nav bar (60px estimated height) + 16px padding
+          bottom: 16 + _footerHeight, // Automatically detected footer height + 16px padding
           child: Material(
             color: Colors.transparent,
             child: AnimatedSwitcher(

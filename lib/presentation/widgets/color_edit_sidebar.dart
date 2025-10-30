@@ -140,17 +140,27 @@ class _ColorEditSidebarState extends State<ColorEditSidebar> {
                               _isLightColorExpanded = false;
                             });
                           },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: BackdropFilter(
+                              filter: ui.ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.75),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: const [
-                                Icon(Icons.restore, color: Colors.black, size: 20),
-                                SizedBox(width: 8),
+                                Text(
+                                  "↺ ",
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                                 Text(
                                   "Reset to Defaults",
                                   style: TextStyle(
@@ -160,6 +170,8 @@ class _ColorEditSidebarState extends State<ColorEditSidebar> {
                                   ),
                                 ),
                               ],
+                            ),
+                              ),
                             ),
                           ),
                         ),
