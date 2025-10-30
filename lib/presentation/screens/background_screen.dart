@@ -23,107 +23,98 @@ class _BackgroundScreenState extends State<BackgroundScreen> {
     });
   }
 
-  void _hideSidebar() {
-    if (_isSidebarVisible) {
-      setState(() {
-        _isSidebarVisible = false;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      bottomNavigationBar: const AppFooterBar(),
-      extendBody: true,
-      body: Stack(
-        children: [
-          const GridBackground(),
-          
-          // Edit button - always visible
-          Positioned(
-            top: 16,
-            right: 16,
-            child: SafeArea(
-              child: FloatingActionButton(
-                heroTag: "edit_button",
-                onPressed: _toggleSidebar,
-                backgroundColor: Colors.white,
-                child: Icon(
-                  _isSidebarVisible ? Icons.close : Icons.edit,
-                  color: Colors.black,
-                  size: 26,
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: Colors.black,
+          bottomNavigationBar: const AppFooterBar(),
+          extendBody: true,
+          body: Stack(
+            children: [
+              const GridBackground(),
+              
+              // Edit button - always visible
+              Positioned(
+                top: 16,
+                right: 16,
+                child: SafeArea(
+                  child: FloatingActionButton(
+                    heroTag: "edit_button",
+                    onPressed: _toggleSidebar,
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      _isSidebarVisible ? Icons.close : Icons.edit,
+                      color: Colors.black,
+                      size: 26,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-          
-          // Refresh button - always visible
-          Positioned(
-            bottom: 16,
-            right: 16,
-            child: SafeArea(
-              child: BlocBuilder<BackgroundBloc, BackgroundState>(
-                buildWhen: (previous, current) => previous.isRefreshing != current.isRefreshing,
-                builder: (context, state) {
-                  return FloatingActionButton(
-                    heroTag: "refresh_button",
-                    onPressed: state.isRefreshing ? null : () {
-                      final screenSize = MediaQuery.of(context).size;
-                      context.read<BackgroundBloc>().add(RegeneratePattern(
-                        width: screenSize.width,
-                        height: screenSize.height,
-                      ));
+              
+              // Refresh button - always visible
+              Positioned(
+                bottom: 16,
+                right: 16,
+                child: SafeArea(
+                  child: BlocBuilder<BackgroundBloc, BackgroundState>(
+                    buildWhen: (previous, current) => previous.isRefreshing != current.isRefreshing,
+                    builder: (context, state) {
+                      return FloatingActionButton(
+                        heroTag: "refresh_button",
+                        onPressed: state.isRefreshing ? null : () {
+                          final screenSize = MediaQuery.of(context).size;
+                          context.read<BackgroundBloc>().add(RegeneratePattern(
+                            width: screenSize.width,
+                            height: screenSize.height,
+                          ));
+                        },
+                        backgroundColor: state.isRefreshing ? Colors.grey : Colors.white,
+                        child: state.isRefreshing 
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                              ),
+                            )
+                          : const Icon(Icons.refresh, color: Colors.black, size: 26),
+                      );
                     },
-                    backgroundColor: state.isRefreshing ? Colors.grey : Colors.white,
-                    child: state.isRefreshing 
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                          ),
-                        )
-                      : const Icon(Icons.refresh, color: Colors.black, size: 26),
-                  );
-                },
-              ),
-            ),
-          ),
-          
-          // Sidebar with animation - positioned as overlay
-          Positioned(
-            top: 0,
-            right: 0,
-            bottom: 0,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              width: _isSidebarVisible ? 350 : 0,
-              child: _isSidebarVisible
-                  ? const ColorEditSidebar()
-                  : const SizedBox.shrink(),
-            ),
-          ),
-          
-          // Tap detector for hiding sidebar - only when sidebar is visible
-          if (_isSidebarVisible)
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 350, // Cover area not covered by sidebar
-              bottom: 0,
-              child: GestureDetector(
-                onTap: _hideSidebar,
-                child: Container(
-                  color: Colors.transparent,
+                  ),
                 ),
               ),
+              
+            ],
+          ),
+        ),
+        
+        // Sidebar with fade animation - positioned as overlay above everything
+        Positioned(
+          top: 16 + MediaQuery.of(context).padding.top,
+          left: 16, // Same padding as buttons (16px from right)
+          bottom: 16 + 60, // Above bottom nav bar (60px estimated height) + 16px padding
+          child: Material(
+            color: Colors.transparent,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              switchInCurve: Curves.easeInOut,
+              switchOutCurve: Curves.easeInOut,
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: child,
+                );
+              },
+              child: _isSidebarVisible
+                  ? const ColorEditSidebar(key: ValueKey('sidebar'))
+                  : const SizedBox.shrink(key: ValueKey('empty')),
             ),
-        ],
-      ),
+          ),
+        ),
+      ],
     );
   }
 }

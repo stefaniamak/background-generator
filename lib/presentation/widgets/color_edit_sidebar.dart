@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,21 +21,27 @@ class _ColorEditSidebarState extends State<ColorEditSidebar> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: max(MediaQuery.of(context).size.width * 0.3, 350),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1A1A1A),
-        border: Border(
-          left: BorderSide(color: Colors.white24, width: 1),
-        ),
-      ),
-      child: GestureDetector(
-        onTap: () {
-          // Prevent clicks inside sidebar from closing it
-        },
+    const double borderRadius = 12;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 4, sigmaY: 4),
         child: BlocBuilder<BackgroundBloc, BackgroundState>(
-        builder: (context, state) {
-          return Column(
+          builder: (context, state) {
+            final baseColor = Colors.black;
+            return Container(
+              width: max(MediaQuery.of(context).size.width * 0.3, 350),
+              decoration: BoxDecoration(
+                color: baseColor.withValues(alpha: 0.5),
+                border: const Border(
+                  right: BorderSide(color: Colors.white24, width: 1),
+                ),
+              ),
+              child: GestureDetector(
+                onTap: () {
+                  // Prevent clicks inside sidebar from closing it
+                },
+                child: Column(
             children: [
               // Header with SafeArea to avoid status bar overlap
               SafeArea(
@@ -148,8 +155,10 @@ class _ColorEditSidebarState extends State<ColorEditSidebar> {
                 ),
               ),
             ],
-          );
-        },
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
