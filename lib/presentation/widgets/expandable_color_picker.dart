@@ -88,9 +88,13 @@ class ExpandableColorPicker extends StatelessWidget {
                   ),
                   
                   // Edit icon
-                  Icon(
-                    isExpanded ? Icons.keyboard_arrow_up : Icons.edit,
-                    color: Colors.white54, 
+                  AnimatedOpacity(
+                    opacity: isExpanded ? 0.5 : 1.0,
+                    duration: const Duration(milliseconds: 300),
+                    child: Icon(
+                      Icons.arrow_drop_down,
+                      color: Colors.white54, 
+                    ),
                   ),
                 ],
               ),
