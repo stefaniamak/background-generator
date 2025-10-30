@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'inline_color_picker.dart';
 
@@ -23,16 +24,20 @@ class ExpandableColorPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF242424),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isExpanded ? Colors.white54 : Colors.white24,
-          width: 1,
-        ),
-      ),
-      child: Column(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF242424).withValues(alpha: 0.75),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isExpanded ? Colors.white54 : Colors.white24,
+              width: 1,
+            ),
+          ),
+          child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Header row
@@ -83,9 +88,13 @@ class ExpandableColorPicker extends StatelessWidget {
                   ),
                   
                   // Edit icon
-                  Icon(
-                    isExpanded ? Icons.keyboard_arrow_up : Icons.edit,
-                    color: Colors.white54, 
+                  AnimatedOpacity(
+                    opacity: isExpanded ? 0.5 : 1.0,
+                    duration: const Duration(milliseconds: 300),
+                    child: Icon(
+                      Icons.arrow_drop_down,
+                      color: Colors.white54, 
+                    ),
                   ),
                 ],
               ),
@@ -99,7 +108,7 @@ class ExpandableColorPicker extends StatelessWidget {
               curve: Curves.easeInOut,
               child: isExpanded
                   ? Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: InlineColorPicker(
                         color: color,
                         onColorChanged: onColorChanged,
@@ -109,6 +118,8 @@ class ExpandableColorPicker extends StatelessWidget {
             ),
           ),
         ],
+          ),
+        ),
       ),
     );
   }

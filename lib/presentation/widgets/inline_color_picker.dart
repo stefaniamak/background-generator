@@ -21,7 +21,7 @@ class _InlineColorPickerState extends State<InlineColorPicker> {
     return ColorPicker(
       pickerColor: widget.color,
       onColorChanged: widget.onColorChanged,
-      pickerAreaHeightPercent: 0.9,
+      pickerAreaHeightPercent: 0.7,
       enableAlpha: false,
       displayThumbColor: true,
       paletteType: PaletteType.hsv,

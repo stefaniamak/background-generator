@@ -1,10 +1,13 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../logic/bloc/background_bloc.dart';
 import '../../logic/bloc/background_event.dart';
 import '../../logic/bloc/background_state.dart';
 import '../widgets/grid_background.dart';
 import '../widgets/color_edit_sidebar.dart';
+import '../widgets/app_footer_bar.dart';
 
 class BackgroundScreen extends StatefulWidget {
   const BackgroundScreen({super.key});
@@ -15,6 +18,29 @@ class BackgroundScreen extends StatefulWidget {
 
 class _BackgroundScreenState extends State<BackgroundScreen> {
   bool _isSidebarVisible = false;
+  final GlobalKey _footerKey = GlobalKey();
+  double _footerHeight = 50; // Default fallback
+
+  @override
+  void initState() {
+    super.initState();
+    // Measure footer height after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _measureFooterHeight();
+    });
+  }
+
+  void _measureFooterHeight() {
+    final RenderBox? renderBox = _footerKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox != null) {
+      final height = renderBox.size.height;
+      if (height != _footerHeight) {
+        setState(() {
+          _footerHeight = height;
+        });
+      }
+    }
+  }
 
   void _toggleSidebar() {
     setState(() {
@@ -22,105 +48,129 @@ class _BackgroundScreenState extends State<BackgroundScreen> {
     });
   }
 
-  void _hideSidebar() {
-    if (_isSidebarVisible) {
-      setState(() {
-        _isSidebarVisible = false;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          const GridBackground(),
-          
-          // Edit button - always visible
-          Positioned(
-            top: 16,
-            right: 16,
-            child: SafeArea(
-              child: FloatingActionButton(
-                heroTag: "edit_button",
-                onPressed: _toggleSidebar,
-                backgroundColor: Colors.white,
-                child: Icon(
-                  _isSidebarVisible ? Icons.close : Icons.edit,
-                  color: Colors.black,
-                  size: 26,
-                ),
-              ),
-            ),
-          ),
-          
-          // Refresh button - always visible
-          Positioned(
-            bottom: 16,
-            right: 16,
-            child: SafeArea(
-              child: BlocBuilder<BackgroundBloc, BackgroundState>(
-                buildWhen: (previous, current) => previous.isRefreshing != current.isRefreshing,
-                builder: (context, state) {
-                  return FloatingActionButton(
-                    heroTag: "refresh_button",
-                    onPressed: state.isRefreshing ? null : () {
-                      final screenSize = MediaQuery.of(context).size;
-                      context.read<BackgroundBloc>().add(RegeneratePattern(
-                        width: screenSize.width,
-                        height: screenSize.height,
-                      ));
-                    },
-                    backgroundColor: state.isRefreshing ? Colors.grey : Colors.white,
-                    child: state.isRefreshing 
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+    // Measure footer height after each build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _measureFooterHeight();
+    });
+    
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: Colors.black,
+          bottomNavigationBar: AppFooterBar(key: _footerKey),
+          extendBody: true,
+          body: Stack(
+            children: [
+              const GridBackground(),
+              
+              // Edit button - always visible
+              Positioned(
+                top: 16,
+                right: 16,
+                child: SafeArea(
+                  child: CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: _toggleSidebar,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: BackdropFilter(
+                        filter: ui.ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                        child: Container(
+                          width: 56,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.75),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        )
-                      : const Icon(Icons.refresh, color: Colors.black, size: 26),
-                  );
-                },
-              ),
-            ),
-          ),
-          
-          // Sidebar with animation - positioned as overlay
-          Positioned(
-            top: 0,
-            right: 0,
-            bottom: 0,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              width: _isSidebarVisible ? 350 : 0,
-              child: _isSidebarVisible
-                  ? const ColorEditSidebar()
-                  : const SizedBox.shrink(),
-            ),
-          ),
-          
-          // Tap detector for hiding sidebar - only when sidebar is visible
-          if (_isSidebarVisible)
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 350, // Cover area not covered by sidebar
-              bottom: 0,
-              child: GestureDetector(
-                onTap: _hideSidebar,
-                child: Container(
-                  color: Colors.transparent,
+                          child: Icon(
+                            _isSidebarVisible ? Icons.close : Icons.edit,
+                            color: Colors.black,
+                            size: 26,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
+              
+              // Refresh button - always visible
+              Positioned(
+                bottom: 16,
+                right: 16,
+                child: SafeArea(
+                  child: BlocBuilder<BackgroundBloc, BackgroundState>(
+                    buildWhen: (previous, current) => previous.isRefreshing != current.isRefreshing,
+                    builder: (context, state) {
+                      return CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        onPressed: state.isRefreshing ? null : () {
+                          final screenSize = MediaQuery.of(context).size;
+                          context.read<BackgroundBloc>().add(RegeneratePattern(
+                            width: screenSize.width,
+                            height: screenSize.height,
+                          ));
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: BackdropFilter(
+                            filter: ui.ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                            child: Container(
+                              width: 56,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: (state.isRefreshing ? Colors.grey : Colors.white).withValues(alpha: 0.75),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: state.isRefreshing 
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                                    ),
+                                  )
+                                : const Icon(Icons.refresh, color: Colors.black, size: 26),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              
+            ],
+          ),
+        ),
+        
+        // Sidebar with fade animation - positioned as overlay above everything
+        Positioned(
+          top: 16 + MediaQuery.of(context).padding.top,
+          left: 16, // Same padding as buttons (16px from right)
+          bottom: 16 + _footerHeight, // Automatically detected footer height + 16px padding
+          child: Material(
+            color: Colors.transparent,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              switchInCurve: Curves.easeInOut,
+              switchOutCurve: Curves.easeInOut,
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: child,
+                );
+              },
+              child: _isSidebarVisible
+                  ? const ColorEditSidebar(key: ValueKey('sidebar'))
+                  : const SizedBox.shrink(key: ValueKey('empty')),
             ),
-        ],
-      ),
+          ),
+        ),
+      ],
     );
   }
 }
